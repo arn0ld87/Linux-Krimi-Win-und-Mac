@@ -1,0 +1,34 @@
+{
+  "1": [
+    {"id":"ep1-briefing","title":"Einsatz anhören","transcript":"Hier ist Alex. Auf Ostwind null eins ist ein Zugriffsrecht aufgetaucht, das nicht zur Freigabe passt. Sichere zuerst die Regel und schau dann ins Audit-Log. Der Name in der Regel verrät dir, für wen sie gilt. Wer sie eingespielt hat, steht woanders."},
+    {"id":"ep1-hinweis","title":"Hinweis anhören","transcript":"Schau dir die Kennung im Kommentar an und vergleiche sie mit dem Audit-Log. Bevor du etwas in Quarantäne verschiebst, sichere auch die Dateirechte. Danach kannst du prüfen, ob der Dienst wirklich wieder sauber dasteht."},
+    {"id":"ep1-abschluss","title":"Abschluss anhören","transcript":"Der Rechtefund ist aufgeklärt. Die Quarantäne hält die Dateien aus dem Betrieb heraus, und deine Belege zeigen, wer die Änderung vorgenommen hat. Im nächsten Fall begegnet dir ein Prozess, der immer wieder auftaucht."}
+  ],
+  "2": [
+    {"id":"ep2-briefing","title":"Einsatz anhören","transcript":"Alex hier. Der Lagerabgleich startet wieder, kurz nachdem er beendet wurde. Sichere den laufenden Prozess und seinen Starter. Am Rack hängt ein fotografierter Wartungszettel. Der hilft dir, den richtigen Eintrag im Journal zu finden."},
+    {"id":"ep2-hinweis","title":"Hinweis anhören","transcript":"Sieh zuerst nach, welches Konto den Abgleich betreibt und was ihn zeitgesteuert neu startet. Wenn du nur den Prozess stoppst, kann er zurückkommen. Lies anschließend die Kennung auf dem Foto und vergleiche sie mit dem Wartungsjournal."},
+    {"id":"ep2-abschluss","title":"Abschluss anhören","transcript":"Der Abgleich bleibt aus. Du hast die Ursache im Zeitplan gefunden und den passenden Eintrag im Wartungsjournal belegt. Für die Nachtschicht nehmen wir als Nächstes das Anmeldelog unter die Lupe."}
+  ],
+  "3": [
+    {"id":"ep3-briefing","title":"Einsatz anhören","transcript":"Alex hier, Nachtschicht. Im Anmeldelog fehlen mehrere Zeilen. Die weitergeleitete Kopie enthält sie noch. Finde den fehlenden Zeitraum, sichere die Zeilen und prüfe, welches Konto darin auftaucht."},
+    {"id":"ep3-hinweis","title":"Hinweis anhören","transcript":"Zähle die Konten nur in den Zeilen, die auf dem Logserver zusätzlich stehen. Im Ergebnis findest du auch den Pfad zum Skript. Verschiebe das Skript unverändert in die Quarantäne, damit der Befund nachvollziehbar bleibt."},
+    {"id":"ep3-abschluss","title":"Abschluss anhören","transcript":"Die Lücke ist erklärt. Das Skript liegt in Quarantäne. Margit hat uns die ursprüngliche Freigabe für den Wartungsexport gebracht. Den Anhang sollten wir uns ansehen."}
+  ],
+  "4": [
+    {"id":"ep4-briefing","title":"Einsatz anhören","transcript":"Sichere die Freigabe und den tatsächlich erzeugten Export. Der Dateiname sagt nichts über den Inhalt."},
+    {"id":"ep4-abschluss","title":"Abschluss anhören","transcript":"Margit hat nur Messwerte freigegeben. Timo hat die Vorlage erweitert. Im Ausgang sehen wir, welche Datei tatsächlich bereitlag."}
+  ],
+  "5": [
+    {"id":"ep5-briefing","title":"Einsatz anhören","transcript":"In der Vorschau sieht alles ordentlich aus. Vergleiche sie mit dem Ausgang. Sichere den Status und die Prüfsumme, bevor du den Entwurf in Quarantäne verschiebst."},
+    {"id":"ep5-abschluss","title":"Abschluss anhören","transcript":"Der Entwurf ist in Quarantäne. Wir wissen, wer ihn bereitgestellt hat. Ob ihn jemand empfangen hat, steht hier nicht."}
+  ],
+  "6": [
+    {"id":"ep6-briefing","title":"Einsatz anhören","transcript":"Vergleiche die Offsets und die Kennungen. Gleiche Minuten allein belegen keinen Zusammenhang."},
+    {"id":"ep6-abschluss","title":"Abschluss anhören","transcript":"Jetzt haben wir eine belastbare Reihenfolge. Nimm die bestätigten Belege mit zur Übergabe."}
+  ],
+  "7": [
+    {"id":"ep7-briefing","title":"Einsatz anhören","transcript":"Wir geben nur die freigegebenen Messwerte weiter. Prüfe zuerst den lokalen Testausgang und ordne dann die Belege zur Übergabe zu."},
+    {"id":"ep7-abschluss","title":"Alex’ Schlusswort anhören","transcript":"Wir haben geklärt, wer den Export bereitstellte und wer die Spur löschte. Einen externen Empfang können wir nicht belegen."},
+    {"id":"micha-ep7-abschluss","title":"Michas Schlusswort anhören","transcript":"Und diesmal läuft nur, was freigegeben ist."}
+  ]
+}

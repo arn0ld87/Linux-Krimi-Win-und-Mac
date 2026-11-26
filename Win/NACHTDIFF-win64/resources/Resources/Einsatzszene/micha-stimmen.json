@@ -1,0 +1,11 @@
+{
+  "wake": {"id":"micha-wake","title":"Wieder wach","transcript":"Hm? Ja, bin da. Ich hab nur kurz die Augen zugemacht. Wo waren wir? Frag mich ruhig nach dem nächsten Schritt."},
+  "0": {"id":"micha-ep0","title":"Tipp zur Kaffeekasse","transcript":"Micha hier. Bevor du die Kasse reparierst, schau dir die Sicherung an. Wenn du die unterschiedlichen Zeilen jetzt ablegst, kannst du später noch zeigen, was verändert wurde."},
+  "1": {"id":"micha-ep1","title":"Tipp zum Rechtefund","transcript":"Der Name in der Freigabe zeigt, für wen sie gilt. Wer sie eingespielt hat, findest du im Audit-Log. Such nach derselben Änderungskennung."},
+  "2": {"id":"micha-ep2","title":"Tipp zum Wiedergänger","transcript":"Wenn der Prozess wieder auftaucht, schau nach dem Zeitplan. Für die Spur zum Journal liegt im Ordner Fotos ein Wartungszettel. Den kannst du auf dem Linux-Bildschirm öffnen."},
+  "3": {"id":"micha-ep3","title":"Tipp zur Loglücke","transcript":"Vergleich zuerst das Anmeldelog mit seiner Kopie. Für die Zählung brauchst du nur die Zeilen, die auf dem Server fehlen."},
+  "4": {"id":"micha-ep4","title":"Tipp zur Freigabe","transcript":"Öffne die Freigabe mit dem Bildbetrachter und die Tabellen-Datei im Editor. Die Freigabe gibt es auch als Text."},
+  "5": {"id":"micha-ep5","title":"Tipp zum Ausgang","transcript":"Öffne im Dateimanager den Ausgang, nicht die Vorschau. Sichere erst die Prüfsumme und verschiebe dann nur den Entwurf."},
+  "6": {"id":"micha-ep6","title":"Tipp zu den Uhren","transcript":"Bei plus zwei Stunden ziehst du zwei Stunden ab. Schreib Datum, Uhrzeit, Kennung und Konto zusammen auf."},
+  "7": {"id":"micha-ep7","title":"Tipp zur Übergabe","transcript":"Beleg erst die freigegebenen Spalten im Testausgang. Unter Übergabe kannst du dann alle vier Antworten prüfen und die Belege zuordnen."}
+}

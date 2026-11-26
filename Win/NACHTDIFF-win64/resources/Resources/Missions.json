@@ -1,0 +1,1446 @@
+[
+  {
+    "episode": {
+      "id": 1,
+      "key": "zu-viele-rechte",
+      "title": "Zu viele Rechte",
+      "caseTitle": "Der Rechtefund",
+      "organization": "Rechenwerk Ostwind GmbH",
+      "account": "azubi",
+      "briefing": "Auf rw-srv01 ist eine unerwartete Freigabe aufgetaucht. Sichere die Regel, die Dateirechte und den passenden Audit-Eintrag. Bring anschließend die beiden auffälligen Dateien unverändert in Quarantäne.",
+      "tracks": [
+        {
+          "id": "rechte",
+          "title": "Rechte",
+          "summary": ""
+        },
+        {
+          "id": "log",
+          "title": "Log",
+          "summary": ""
+        }
+      ],
+      "evidenceSpecs": [
+        {
+          "id": "log-zeile",
+          "trackID": "log",
+          "fileName": "log-zeile.txt",
+          "title": "Eintrag im Audit-Log",
+          "requiredFragments": [],
+          "forbiddenFragments": [],
+          "hint": "Das Audit-Log nennt Timo als die Person, die RW-1042 eingespielt hat."
+        },
+        {
+          "id": "rechte-metadaten",
+          "trackID": "rechte",
+          "fileName": "rechte-metadaten.txt",
+          "title": "Dateirechte und Eigentümer",
+          "requiredFragments": [],
+          "forbiddenFragments": [],
+          "hint": "Die Regeldatei gehört root und stammt vom 17. April. Root als Besitzer nennt allerdings keine Person."
+        },
+        {
+          "id": "rechte-zeile",
+          "trackID": "rechte",
+          "fileName": "rechte-zeile.txt",
+          "title": "Unerwartete Freigabe",
+          "requiredFragments": [],
+          "forbiddenFragments": [],
+          "hint": "Die unerwartete sudo-Regel in rw-fernwartung gehört zur Änderung RW-1042."
+        }
+      ],
+      "suspects": [
+        {
+          "id": "timo",
+          "name": "Timo Kessler",
+          "role": "Systemadministrator, Fernwartung",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        },
+        {
+          "id": "nadia",
+          "name": "Nadia Brem",
+          "role": "Datenbankverwaltung",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        },
+        {
+          "id": "margit",
+          "name": "Margit Ostwind",
+          "role": "Geschäftsführerin",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        }
+      ],
+      "culpritID": "timo",
+      "steps": [
+        {
+          "id": "sudo-zeile",
+          "trackID": "rechte",
+          "title": "Sichere die unerwartete sudo-Regel",
+          "detail": "Die Regel für jeden Fall: erst Belege sichern, dann reparieren. Wer vorher eingreift, verändert den Beweis.",
+          "command": null,
+          "hints": [
+            "Die Regeln für sudo liegen in Dateien unter /etc/sudoers.d. Eine davon nennt eine Person, die dort nichts zu suchen hat, und eine Änderungskennung steht gleich dabei.",
+            "Mit ls siehst du, welche Dateien im Ordner liegen, mit grep suchst du darin nach Text. Mit grep -B1 nimmst du die Zeile davor mit, und > schreibt das Ergebnis in eine Datei. Achtung: > überschreibt die Datei jedes Mal, >> hängt nur hinten an.",
+            "grep -B1 nadia /etc/sudoers.d/rw-fernwartung > ~/belege/rechte-zeile.txt"
+          ]
+        },
+        {
+          "id": "kennung",
+          "trackID": "rechte",
+          "title": "Lies die Änderungskennung ab",
+          "detail": "Trag die Kennung unten ein. Sie steht in deinem Beleg und im Audit-Log.",
+          "command": null,
+          "hints": [
+            "Die Kennung steht schon in deinem Beleg rechte-zeile.txt, gleich über der Regel. Sie beginnt mit RW-.",
+            "cat zeigt dir den Inhalt deines Belegs. Such die Zeile mit dem Kommentar zur Fernwartung.",
+            "cat ~/belege/rechte-zeile.txt zeigt beide Zeilen; die Kennung beginnt mit RW- und hat vier Ziffern."
+          ]
+        },
+        {
+          "id": "datei-metadaten",
+          "trackID": "rechte",
+          "title": "Sichere Besitzer, Rechte und Datum",
+          "detail": "Beide Dateien gehören in denselben Beleg, und zwar als echte Ausgabe von ls -l mit Dateiname, Besitzer, Rechten und Datum. Von Hand abgetippte Werte erkennt die Prüfung nicht.",
+          "command": null,
+          "hints": [
+            "Besitzer, Rechte und Datum einer Datei zeigt ein einziger Befehl. Das Programm rw-status liegt irgendwo unter /usr/local; sein Setuid-Bit erkennst du an einem s in den Rechten.",
+            "ls -l zeigt Besitzer, Rechte und Datum, stat zeigt sie ausführlicher. Mit find /usr/local -perm -4000 findest du Dateien mit Setuid-Bit. Mit $( ) setzt du die Ausgabe eines Befehls in einen anderen ein. Willst du zwei Befehle nacheinander in dieselbe Datei schreiben, nimm beim zweiten >>, denn > würde die erste Ausgabe überschreiben.",
+            "ls -l /etc/sudoers.d/rw-fernwartung $(find /usr/local -perm -4000 -type f) > ~/belege/rechte-metadaten.txt"
+          ]
+        },
+        {
+          "id": "regel-weg",
+          "trackID": "rechte",
+          "title": "Nimm die fremde sudo-Regel aus dem Betrieb",
+          "detail": "Geprüft wird der Zustand: Die Regel darf nicht mehr gelten und die sudo-Konfiguration muss gültig bleiben.",
+          "command": null,
+          "hints": [
+            "Eine Regel in /etc/sudoers.d gilt, solange ihre Datei dort liegt. Sie muss aus dem Ordner verschwinden, soll aber als Beweis erhalten bleiben. Hol sie dir in deine Quarantäne.",
+            "mv verschiebt eine Datei. Weil /etc nur root gehört, brauchst du sudo vor dem Befehl; sudo -l zeigt dir, was du darfst. Das Ziel ist der Ordner ~/quarantaene/.",
+            "sudo mv /etc/sudoers.d/rw-fernwartung ~/quarantaene/"
+          ]
+        },
+        {
+          "id": "status-weg",
+          "trackID": "rechte",
+          "title": "Stelle rw-status unter Quarantäne",
+          "detail": "Ordne die Akte: Verschiebe rw-status unverändert in ~/quarantaene/. Kopieren genügt nicht, das Original muss aus /usr/local/bin verschwinden.",
+          "command": null,
+          "hints": [
+            "Das Programm liegt irgendwo unter /usr/local. Es soll genau so, wie es ist, in deine Quarantäne wandern, also verschoben und nicht kopiert.",
+            "Wie bei der Regel: mv mit sudo davor, denn in /usr/local darfst du nichts verändern. Der Einsatzrahmen erlaubt dir das nur für diese Datei.",
+            "sudo mv /usr/local/bin/rw-status ~/quarantaene/"
+          ]
+        },
+        {
+          "id": "audit-zeile",
+          "trackID": "log",
+          "title": "Sichere die passende Audit-Zeile",
+          "detail": "Die ganze Zeile muss unverändert in der Datei stehen, so wie sie im Log steht, ohne eigene Kürzungen oder Ergänzungen.",
+          "command": null,
+          "hints": [
+            "Das Log ist eine Textdatei. Jede Zeile nennt Zeit, Person, Aktion, Änderungskennung (change=) und Ziel (target=).",
+            "grep sucht Zeilen mit einem bestimmten Wort. Such nach dem Ordner, in dem die Regeln für sudo liegen, und leite das Ergebnis mit > in eine Datei um.",
+            "grep sudoers.d /var/log/rechenwerk-audit.log > ~/belege/log-zeile.txt"
+          ]
+        }
+      ],
+      "playable": true
+    },
+    "steps": [
+      {
+        "id": "sudo-zeile",
+        "trackID": "rechte",
+        "title": "Sichere die unerwartete sudo-Regel",
+        "detail": "Die Regel für jeden Fall: erst Belege sichern, dann reparieren. Wer vorher eingreift, verändert den Beweis.",
+        "command": null,
+        "hints": [
+          "Die Regeln für sudo liegen in Dateien unter /etc/sudoers.d. Eine davon nennt eine Person, die dort nichts zu suchen hat, und eine Änderungskennung steht gleich dabei.",
+          "Mit ls siehst du, welche Dateien im Ordner liegen, mit grep suchst du darin nach Text. Mit grep -B1 nimmst du die Zeile davor mit, und > schreibt das Ergebnis in eine Datei. Achtung: > überschreibt die Datei jedes Mal, >> hängt nur hinten an.",
+          "grep -B1 nadia /etc/sudoers.d/rw-fernwartung > ~/belege/rechte-zeile.txt"
+        ]
+      },
+      {
+        "id": "kennung",
+        "trackID": "rechte",
+        "title": "Lies die Änderungskennung ab",
+        "detail": "Trag die Kennung unten ein. Sie steht in deinem Beleg und im Audit-Log.",
+        "command": null,
+        "hints": [
+          "Die Kennung steht schon in deinem Beleg rechte-zeile.txt, gleich über der Regel. Sie beginnt mit RW-.",
+          "cat zeigt dir den Inhalt deines Belegs. Such die Zeile mit dem Kommentar zur Fernwartung.",
+          "cat ~/belege/rechte-zeile.txt zeigt beide Zeilen; die Kennung beginnt mit RW- und hat vier Ziffern."
+        ]
+      },
+      {
+        "id": "datei-metadaten",
+        "trackID": "rechte",
+        "title": "Sichere Besitzer, Rechte und Datum",
+        "detail": "Beide Dateien gehören in denselben Beleg, und zwar als echte Ausgabe von ls -l mit Dateiname, Besitzer, Rechten und Datum. Von Hand abgetippte Werte erkennt die Prüfung nicht.",
+        "command": null,
+        "hints": [
+          "Besitzer, Rechte und Datum einer Datei zeigt ein einziger Befehl. Das Programm rw-status liegt irgendwo unter /usr/local; sein Setuid-Bit erkennst du an einem s in den Rechten.",
+          "ls -l zeigt Besitzer, Rechte und Datum, stat zeigt sie ausführlicher. Mit find /usr/local -perm -4000 findest du Dateien mit Setuid-Bit. Mit $( ) setzt du die Ausgabe eines Befehls in einen anderen ein. Willst du zwei Befehle nacheinander in dieselbe Datei schreiben, nimm beim zweiten >>, denn > würde die erste Ausgabe überschreiben.",
+          "ls -l /etc/sudoers.d/rw-fernwartung $(find /usr/local -perm -4000 -type f) > ~/belege/rechte-metadaten.txt"
+        ]
+      },
+      {
+        "id": "regel-weg",
+        "trackID": "rechte",
+        "title": "Nimm die fremde sudo-Regel aus dem Betrieb",
+        "detail": "Geprüft wird der Zustand: Die Regel darf nicht mehr gelten und die sudo-Konfiguration muss gültig bleiben.",
+        "command": null,
+        "hints": [
+          "Eine Regel in /etc/sudoers.d gilt, solange ihre Datei dort liegt. Sie muss aus dem Ordner verschwinden, soll aber als Beweis erhalten bleiben. Hol sie dir in deine Quarantäne.",
+          "mv verschiebt eine Datei. Weil /etc nur root gehört, brauchst du sudo vor dem Befehl; sudo -l zeigt dir, was du darfst. Das Ziel ist der Ordner ~/quarantaene/.",
+          "sudo mv /etc/sudoers.d/rw-fernwartung ~/quarantaene/"
+        ]
+      },
+      {
+        "id": "status-weg",
+        "trackID": "rechte",
+        "title": "Stelle rw-status unter Quarantäne",
+        "detail": "Ordne die Akte: Verschiebe rw-status unverändert in ~/quarantaene/. Kopieren genügt nicht, das Original muss aus /usr/local/bin verschwinden.",
+        "command": null,
+        "hints": [
+          "Das Programm liegt irgendwo unter /usr/local. Es soll genau so, wie es ist, in deine Quarantäne wandern, also verschoben und nicht kopiert.",
+          "Wie bei der Regel: mv mit sudo davor, denn in /usr/local darfst du nichts verändern. Der Einsatzrahmen erlaubt dir das nur für diese Datei.",
+          "sudo mv /usr/local/bin/rw-status ~/quarantaene/"
+        ]
+      },
+      {
+        "id": "audit-zeile",
+        "trackID": "log",
+        "title": "Sichere die passende Audit-Zeile",
+        "detail": "Die ganze Zeile muss unverändert in der Datei stehen, so wie sie im Log steht, ohne eigene Kürzungen oder Ergänzungen.",
+        "command": null,
+        "hints": [
+          "Das Log ist eine Textdatei. Jede Zeile nennt Zeit, Person, Aktion, Änderungskennung (change=) und Ziel (target=).",
+          "grep sucht Zeilen mit einem bestimmten Wort. Such nach dem Ordner, in dem die Regeln für sudo liegen, und leite das Ergebnis mit > in eine Datei um.",
+          "grep sudoers.d /var/log/rechenwerk-audit.log > ~/belege/log-zeile.txt"
+        ]
+      }
+    ],
+    "setup": "set -eu\nexport LC_ALL=C\nfehler() { echo \"Staffel 2, Episode 1: $1\" >&2; exit 1; }\ntmp=$(mktemp -d)\ntrap 'rm -rf \"$tmp\"' EXIT\nif [ ! -d '/home/azubi/belege' ] || [ -L '/home/azubi/belege' ]; then fehler 'Der Belegordner fehlt.'; fi\nfor id in rechte-zeile rechte-metadaten log-zeile; do\n  rm -f -- \"/home/azubi/belege/$id.txt\"\n  if [ -e \"/home/azubi/belege/$id.txt\" ] || [ -L \"/home/azubi/belege/$id.txt\" ]; then fehler \"$id.txt ist belegt.\"; fi\ndone\nif [ -L '/home/azubi/quarantaene' ] || { [ -e '/home/azubi/quarantaene' ] && [ ! -d '/home/azubi/quarantaene' ]; }; then fehler 'Die Quarantäne ist belegt.'; fi\ninstall -d -o azubi -g azubi -m 0755 '/home/azubi/quarantaene'\nfor name in rw-fernwartung rw-status; do\n  rm -f -- \"/home/azubi/quarantaene/$name\"\n  if [ -e \"/home/azubi/quarantaene/$name\" ] || [ -L \"/home/azubi/quarantaene/$name\" ]; then fehler \"$name ist in der Quarantäne belegt.\"; fi\ndone\nkonto() {\n  if id \"$2\" >/dev/null 2>&1; then return 0; fi\n  adduser -D -H -u \"$1\" -h \"/home/$2\" -s /sbin/nologin -g \"$3\" \"$2\"\n}\nkonto 1101 timo 'Timo Kessler'\nkonto 1102 nadia 'Nadia Brem'\nkonto 1103 margit 'Margit Ostwind'\nprintf '%s\\n' '# Fernwartung, Aenderung RW-1042 (fiktive Uebungsdaten)' 'nadia ALL=(root) NOPASSWD: /usr/bin/id' > \"$tmp/regel\"\nvisudo -cf \"$tmp/regel\" >/dev/null\ninstall -o root -g root -m 0644 \"$tmp/regel\" '/etc/sudoers.d/rw-fernwartung'\ntouch -d '2026-04-17 08:42:00 UTC' '/etc/sudoers.d/rw-fernwartung'\nprintf '%s\\n' '#!/bin/sh' 'exit 0' > \"$tmp/status\"\ninstall -o root -g root -m 0755 \"$tmp/status\" '/usr/local/bin/rw-status'\nchmod 4755 '/usr/local/bin/rw-status'\ntouch -d '2026-04-17 08:42:00 UTC' '/usr/local/bin/rw-status'\nprintf '%s\\n' '2026-04-17T07:58:12Z margit login result=ok' '2026-04-17T08:12:30Z nadia archive-logs change=RW-1038 target=/var/log/archiv' '2026-04-17T08:20:44Z timo update-packages change=RW-1040 target=/usr/local/share/rw' '2026-04-17T08:31:09Z timo login result=ok' '2026-04-17T08:38:05Z nadia open-request change=RW-1042 target=-' '2026-04-17T08:41:30Z timo edit-config change=RW-1041 target=/etc/hosts' '2026-04-17T08:42:00Z timo install-sudoers change=RW-1042 target=/etc/sudoers.d/rw-fernwartung' '2026-04-17T08:44:19Z margit logout result=ok' > \"$tmp/audit\"\ninstall -o root -g root -m 0644 \"$tmp/audit\" '/var/log/rechenwerk-audit.log'\ntouch -d '2026-04-17 08:45:00 UTC' '/var/log/rechenwerk-audit.log'\n[ \"$(stat -c '%U:%G:%a' '/etc/sudoers.d/rw-fernwartung')\" = root:root:644 ] || fehler 'Die Regeldatei hat falsche Rechte.'\n[ \"$(stat -c '%U:%G:%a' '/usr/local/bin/rw-status')\" = root:root:4755 ] || fehler 'rw-status hat falsche Rechte.'\n[ \"$(stat -c '%U:%G:%a' '/var/log/rechenwerk-audit.log')\" = root:root:644 ] || fehler 'Das Audit-Log hat falsche Rechte.'\n[ \"$(stat -c %y '/etc/sudoers.d/rw-fernwartung' | cut -c1-19)\" = '2026-04-17 08:42:00' ] || fehler 'Die Zeit der Regeldatei stimmt nicht.'\nexit 0\n",
+    "check": {
+      "log-zeile": "export LC_ALL=C\nset -f\nd='/home/azubi/belege'\nf=\"$d/log-zeile.txt\"\n[ -d \"$d\" ] && [ ! -L \"$d\" ] && [ -f \"$f\" ] && [ ! -L \"$f\" ] && [ -s \"$f\" ] || exit 1\nhas() { [[ $inhalt == *\"$1\"* ]]; }\na='/var/log/rechenwerk-audit.log'\n[ -f \"$a\" ] && [ ! -L \"$a\" ] || exit 1\n{ IFS=: read -r eigner _ groesse; IFS=: read -r au ag _; } < <(stat -c '%U:%G:%s' \"$f\" \"$a\")\n[ \"$au:$ag\" = root:root ] || exit 1\n[ \"$eigner\" = azubi ] && [ \"$groesse\" -le 65536 ] || exit 1\nIFS= read -r -d '' inhalt < \"$f\"\nchange='RW-1042'\nzeile=; n=0\nwhile IFS= read -r z; do\n  set -- $z\n  if [ \"$2\" = timo ] && [ \"$4\" = \"change=$change\" ] && [ \"$5\" = \"target=/etc/sudoers.d/rw-fernwartung\" ]; then\n    zeile=$z; n=$((n + 1))\n  fi\ndone < \"$a\"\n[ \"$n\" = 1 ] && has \"$zeile\"\n",
+      "rechte-metadaten": "export LC_ALL=C\nset -f\nd='/home/azubi/belege'\nf=\"$d/rechte-metadaten.txt\"\n[ -d \"$d\" ] && [ ! -L \"$d\" ] && [ -f \"$f\" ] && [ ! -L \"$f\" ] && [ -s \"$f\" ] || exit 1\nhas() { [[ $inhalt == *\"$1\"* ]]; }\n{ IFS=: read -r eigner _ groesse; } < <(stat -c '%U:%G:%s' \"$f\")\n[ \"$eigner\" = azubi ] && [ \"$groesse\" -le 65536 ] || exit 1\nIFS= read -r -d '' inhalt < \"$f\"\nhas rw-fernwartung && has rw-status && has root || exit 1\nre_q='(^|[^0-9])0?644([^0-9]|$)'\nre_s='(^|[^0-9])4755([^0-9]|$)'\n{ has -rw-r--r-- || [[ $inhalt =~ $re_q ]]; } || exit 1\n{ has -rwsr-xr-x || [[ $inhalt =~ $re_s ]]; } || exit 1\n# ls zeigt je nach Alter der Datei Uhrzeit oder Jahr, stat und ls --full-time das volle Datum.\nhas '2026-04-17' || has 'Apr 17 08:42' || has 'Apr 17  2026'\n",
+      "rechte-zeile": "export LC_ALL=C\nset -f\nd='/home/azubi/belege'\nf=\"$d/rechte-zeile.txt\"\n[ -d \"$d\" ] && [ ! -L \"$d\" ] && [ -f \"$f\" ] && [ ! -L \"$f\" ] && [ -s \"$f\" ] || exit 1\nhas() { [[ $inhalt == *\"$1\"* ]]; }\n{ IFS=: read -r eigner _ groesse; } < <(stat -c '%U:%G:%s' \"$f\")\n[ \"$eigner\" = azubi ] && [ \"$groesse\" -le 65536 ] || exit 1\nIFS= read -r -d '' inhalt < \"$f\"\nhas 'nadia ALL=(root) NOPASSWD: /usr/bin/id' && has 'RW-1042'\n",
+      "sudo-zeile": "export LC_ALL=C\nset -f\nd='/home/azubi/belege'\nf=\"$d/rechte-zeile.txt\"\n[ -d \"$d\" ] && [ ! -L \"$d\" ] && [ -f \"$f\" ] && [ ! -L \"$f\" ] && [ -s \"$f\" ] || exit 1\nhas() { [[ $inhalt == *\"$1\"* ]]; }\n{ IFS=: read -r eigner _ groesse; } < <(stat -c '%U:%G:%s' \"$f\")\n[ \"$eigner\" = azubi ] && [ \"$groesse\" -le 65536 ] || exit 1\nIFS= read -r -d '' inhalt < \"$f\"\nhas 'nadia ALL=(root) NOPASSWD: /usr/bin/id' && has 'RW-1042'\n",
+      "datei-metadaten": "export LC_ALL=C\nset -f\nd='/home/azubi/belege'\nf=\"$d/rechte-metadaten.txt\"\n[ -d \"$d\" ] && [ ! -L \"$d\" ] && [ -f \"$f\" ] && [ ! -L \"$f\" ] && [ -s \"$f\" ] || exit 1\nhas() { [[ $inhalt == *\"$1\"* ]]; }\n{ IFS=: read -r eigner _ groesse; } < <(stat -c '%U:%G:%s' \"$f\")\n[ \"$eigner\" = azubi ] && [ \"$groesse\" -le 65536 ] || exit 1\nIFS= read -r -d '' inhalt < \"$f\"\nhas rw-fernwartung && has rw-status && has root || exit 1\nre_q='(^|[^0-9])0?644([^0-9]|$)'\nre_s='(^|[^0-9])4755([^0-9]|$)'\n{ has -rw-r--r-- || [[ $inhalt =~ $re_q ]]; } || exit 1\n{ has -rwsr-xr-x || [[ $inhalt =~ $re_s ]]; } || exit 1\n# ls zeigt je nach Alter der Datei Uhrzeit oder Jahr, stat und ls --full-time das volle Datum.\nhas '2026-04-17' || has 'Apr 17 08:42' || has 'Apr 17  2026'\n",
+      "regel-weg": "export LC_ALL=C\nq='/etc/sudoers.d/rw-fernwartung'\nk='/home/azubi/quarantaene'\n[ -d \"$k\" ] && [ ! -L \"$k\" ] || exit 1\n[ ! -e \"$q\" ] && [ ! -L \"$q\" ] || exit 1\nvisudo -c >/dev/null 2>&1 || exit 1\nliste=$(sudo -l -U nadia 2>&1 </dev/null)\n[[ $liste == *nadia* && $liste != *NOPASSWD* ]]\n",
+      "status-weg": "export LC_ALL=C\nk='/home/azubi/quarantaene'\n[ -d \"$k\" ] && [ ! -L \"$k\" ] || exit 1\nq='/home/azubi/quarantaene/rw-status'\ns='/usr/local/bin/rw-status'\n[ -f \"$q\" ] && [ ! -L \"$q\" ] && [ ! -e \"$s\" ] && [ ! -L \"$s\" ] || exit 1\n{ IFS=: read -r u g modus groesse; } < <(stat -c '%U:%G:%a:%s' \"$q\")\n[ \"$u:$g:$modus\" = root:root:4755 ] && [ \"$groesse\" -le 4096 ] || exit 1\nIFS= read -r -d '' inhalt < \"$q\"\n[ \"$inhalt\" = '#!/bin/sh\nexit 0\n' ]\n",
+      "audit-zeile": "export LC_ALL=C\nset -f\nd='/home/azubi/belege'\nf=\"$d/log-zeile.txt\"\n[ -d \"$d\" ] && [ ! -L \"$d\" ] && [ -f \"$f\" ] && [ ! -L \"$f\" ] && [ -s \"$f\" ] || exit 1\nhas() { [[ $inhalt == *\"$1\"* ]]; }\na='/var/log/rechenwerk-audit.log'\n[ -f \"$a\" ] && [ ! -L \"$a\" ] || exit 1\n{ IFS=: read -r eigner _ groesse; IFS=: read -r au ag _; } < <(stat -c '%U:%G:%s' \"$f\" \"$a\")\n[ \"$au:$ag\" = root:root ] || exit 1\n[ \"$eigner\" = azubi ] && [ \"$groesse\" -le 65536 ] || exit 1\nIFS= read -r -d '' inhalt < \"$f\"\nchange='RW-1042'\nzeile=; n=0\nwhile IFS= read -r z; do\n  set -- $z\n  if [ \"$2\" = timo ] && [ \"$4\" = \"change=$change\" ] && [ \"$5\" = \"target=/etc/sudoers.d/rw-fernwartung\" ]; then\n    zeile=$z; n=$((n + 1))\n  fi\ndone < \"$a\"\n[ \"$n\" = 1 ] && has \"$zeile\"\n"
+    },
+    "responses": {
+      "kennung": {
+        "question": "Unter welcher Änderungskennung wurde die Regel eingespielt?",
+        "format": "RW, Bindestrich und eine Zahl, etwa RW-1234",
+        "script": "k=$(printf %s \"$ANTWORT\" | tr a-z A-Z)\nprintf %s \"$k\" | grep -qE '^RW-[0-9]+$' || exit 1\ngrep -qF -- \" install-sudoers change=$k target=/etc/sudoers.d/rw-fernwartung\" /var/log/rechenwerk-audit.log"
+      }
+    },
+    "repairs": [
+      "regel-weg",
+      "status-weg"
+    ],
+    "sudo": [
+      "/bin/mv /etc/sudoers.d/rw-fernwartung /home/azubi/quarantaene/",
+      "/bin/mv /etc/sudoers.d/rw-fernwartung /home/azubi/quarantaene",
+      "/bin/mv /etc/sudoers.d/rw-fernwartung /home/azubi/quarantaene/rw-fernwartung",
+      "/bin/mv /usr/local/bin/rw-status /home/azubi/quarantaene/",
+      "/bin/mv /usr/local/bin/rw-status /home/azubi/quarantaene",
+      "/bin/mv /usr/local/bin/rw-status /home/azubi/quarantaene/rw-status"
+    ],
+    "evidenceIDs": [
+      "log-zeile",
+      "rechte-metadaten",
+      "rechte-zeile"
+    ],
+    "minimumEvidence": 2,
+    "resolution": "Das passt zusammen: Die Regel trägt die Kennung RW-1042, und das Audit-Log zeigt, wer sie unter dieser Kennung eingespielt hat. Das war Timo. Dass die Datei root gehört, hätte allein nichts bewiesen. Erst Regel und Logzeile zusammen tragen den Vorwurf.",
+    "wrongSuspect": "Diese Person passt nicht zu deinen Belegen. Wem die Regel gilt oder wem die Datei gehört, sagt nicht, wer die Änderung veranlasst hat. Such die Person, die das Audit-Log unter der Kennung der Regel nennt.",
+    "insufficientEvidence": "Die Person könnte stimmen, aber die Begründung trägt noch nicht. Eine Regel allein nennt keine Person. Du brauchst Belege aus beiden Spuren: Was in den Rechten steht und was das Log dazu sagt."
+  },
+  {
+    "episode": {
+      "id": 2,
+      "key": "prozess-der-nicht-stirbt",
+      "title": "Der Prozess, der nicht stirbt",
+      "caseTitle": "Der Wiedergänger",
+      "organization": "Rechenwerk Ostwind GmbH",
+      "account": "azubi",
+      "briefing": "Der Lagerabgleich kehrt zurück, wenn man ihn beendet. Sichere den laufenden Prozess und seinen Starter. Ein Foto vom Wartungszettel hilft dir, die richtige Änderung im Journal zuzuordnen.",
+      "tracks": [
+        {
+          "id": "prozess",
+          "title": "Prozess",
+          "summary": ""
+        },
+        {
+          "id": "zettel",
+          "title": "Zettel",
+          "summary": ""
+        }
+      ],
+      "evidenceSpecs": [
+        {
+          "id": "prozess-zeile",
+          "trackID": "prozess",
+          "fileName": "prozess-zeile.txt",
+          "title": "Sichere die Prozesszeile und ihren Starter",
+          "requiredFragments": [],
+          "forbiddenFragments": [],
+          "hint": "rw-abgleich läuft als Dienstkonto abgleich, und crond startet ihn. Ein Mensch hat den Starter eingetragen, nur wer, sagt der Prozess nicht."
+        },
+        {
+          "id": "wartung-zeile",
+          "trackID": "zettel",
+          "fileName": "wartung-zeile.txt",
+          "title": "Sichere die Journalzeile zur Kennung",
+          "requiredFragments": [],
+          "forbiddenFragments": [],
+          "hint": "Das Wartungsjournal nennt Nadia unter der Kennung RW-2122, die auf dem Zettel steht."
+        }
+      ],
+      "suspects": [
+        {
+          "id": "timo",
+          "name": "Timo Kessler",
+          "role": "Systemadministrator, pflegt die Cron-Listen",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        },
+        {
+          "id": "nadia",
+          "name": "Nadia Brem",
+          "role": "Datenbankverwaltung, Lagerabgleich",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        },
+        {
+          "id": "margit",
+          "name": "Margit Ostwind",
+          "role": "Geschäftsführerin",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        }
+      ],
+      "culpritID": "nadia",
+      "steps": [
+        {
+          "id": "prozess-zeile",
+          "trackID": "prozess",
+          "title": "Sichere die Prozesszeile und ihren Starter",
+          "detail": "Schritt 1: Sichere die Zeile des Prozesses rw-abgleich und die Zeile des Dienstes, der Prozesse zeitgesteuert startet, als ~/belege/prozess-zeile.txt. Tu das, bevor du eingreifst: Danach ist der Prozess weg.",
+          "command": null,
+          "hints": [
+            "Laufende Prozesse listet ein einziger Befehl. Zeitgesteuerte Aufgaben erledigt der Dienst cron; sein Prozess heißt crond.",
+            "ps zeigt die Prozesse mit Nummer, Konto und Befehl. Mit grep -E suchst du nach zwei Namen auf einmal, getrennt durch einen senkrechten Strich, und > schreibt das Ergebnis in eine Datei.",
+            "ps | grep -E 'rw-abgleich|crond' > ~/belege/prozess-zeile.txt"
+          ]
+        },
+        {
+          "id": "wiedergaenger",
+          "trackID": "prozess",
+          "title": "Beende den Wiedergänger endgültig",
+          "detail": "Sorge dafür, dass rw-abgleich nicht mehr läuft und auch nicht wiederkommt. Geprüft wird der Zustand, nicht der Weg.",
+          "command": null,
+          "hints": [
+            "Wer den Prozess immer wieder startet, steht in der Cron-Liste des Dienstkontos. Ohne sudo kommst du an sie nicht heran.",
+            "sudo crontab -u abgleich -l zeigt die Liste, mit -r wird sie gelöscht. Prozesse beendet pkill, nach Name mit -x oder nach Konto mit -u.",
+            "sudo crontab -u abgleich -r && sudo pkill -x rw-abgleich"
+          ]
+        },
+        {
+          "id": "kennung",
+          "trackID": "zettel",
+          "title": "Lies die Kennung vom Zettel ab",
+          "detail": "Öffne „Bildschirm“ und starte den Dateimanager. Im Ordner fotos liegt IMG_0417.png. Öffne das Bild und lies die Kennung vom Zettel ab.",
+          "command": null,
+          "hints": [
+            "Öffne „Bildschirm“ und starte den Dateimanager. Im Ordner fotos liegt IMG_0417.png. Öffne das Bild und lies die Kennung vom Zettel ab."
+          ]
+        },
+        {
+          "id": "wartung-zeile",
+          "trackID": "zettel",
+          "title": "Sichere die Journalzeile zur Kennung",
+          "detail": "Sichere genau die Zeile, die zur Kennung vom Zettel gehört, als ~/belege/wartung-zeile.txt. Andere Cron-Änderungen gehören nicht in den Beleg.",
+          "command": null,
+          "hints": [
+            "Das Journal ist eine Textdatei. Jede Zeile nennt Zeit, Person, Aktion, Änderungskennung (change=) und Ziel (target=).",
+            "grep sucht Zeilen mit einem bestimmten Text, etwa der Kennung. Leite das Ergebnis mit > in eine Datei um.",
+            "grep 'change=RW-2122 ' /var/log/rechenwerk-wartung.log > ~/belege/wartung-zeile.txt"
+          ]
+        }
+      ],
+      "playable": true
+    },
+    "steps": [
+      {
+        "id": "prozess-zeile",
+        "trackID": "prozess",
+        "title": "Sichere die Prozesszeile und ihren Starter",
+        "detail": "Schritt 1: Sichere die Zeile des Prozesses rw-abgleich und die Zeile des Dienstes, der Prozesse zeitgesteuert startet, als ~/belege/prozess-zeile.txt. Tu das, bevor du eingreifst: Danach ist der Prozess weg.",
+        "command": null,
+        "hints": [
+          "Laufende Prozesse listet ein einziger Befehl. Zeitgesteuerte Aufgaben erledigt der Dienst cron; sein Prozess heißt crond.",
+          "ps zeigt die Prozesse mit Nummer, Konto und Befehl. Mit grep -E suchst du nach zwei Namen auf einmal, getrennt durch einen senkrechten Strich, und > schreibt das Ergebnis in eine Datei.",
+          "ps | grep -E 'rw-abgleich|crond' > ~/belege/prozess-zeile.txt"
+        ]
+      },
+      {
+        "id": "wiedergaenger",
+        "trackID": "prozess",
+        "title": "Beende den Wiedergänger endgültig",
+        "detail": "Sorge dafür, dass rw-abgleich nicht mehr läuft und auch nicht wiederkommt. Geprüft wird der Zustand, nicht der Weg.",
+        "command": null,
+        "hints": [
+          "Wer den Prozess immer wieder startet, steht in der Cron-Liste des Dienstkontos. Ohne sudo kommst du an sie nicht heran.",
+          "sudo crontab -u abgleich -l zeigt die Liste, mit -r wird sie gelöscht. Prozesse beendet pkill, nach Name mit -x oder nach Konto mit -u.",
+          "sudo crontab -u abgleich -r && sudo pkill -x rw-abgleich"
+        ]
+      },
+      {
+        "id": "kennung",
+        "trackID": "zettel",
+        "title": "Lies die Kennung vom Zettel ab",
+        "detail": "Öffne „Bildschirm“ und starte den Dateimanager. Im Ordner fotos liegt IMG_0417.png. Öffne das Bild und lies die Kennung vom Zettel ab.",
+        "command": null,
+        "hints": [
+          "Öffne „Bildschirm“ und starte den Dateimanager. Im Ordner fotos liegt IMG_0417.png. Öffne das Bild und lies die Kennung vom Zettel ab."
+        ]
+      },
+      {
+        "id": "wartung-zeile",
+        "trackID": "zettel",
+        "title": "Sichere die Journalzeile zur Kennung",
+        "detail": "Sichere genau die Zeile, die zur Kennung vom Zettel gehört, als ~/belege/wartung-zeile.txt. Andere Cron-Änderungen gehören nicht in den Beleg.",
+        "command": null,
+        "hints": [
+          "Das Journal ist eine Textdatei. Jede Zeile nennt Zeit, Person, Aktion, Änderungskennung (change=) und Ziel (target=).",
+          "grep sucht Zeilen mit einem bestimmten Text, etwa der Kennung. Leite das Ergebnis mit > in eine Datei um.",
+          "grep 'change=RW-2122 ' /var/log/rechenwerk-wartung.log > ~/belege/wartung-zeile.txt"
+        ]
+      }
+    ],
+    "setup": "set -eu\nexport LC_ALL=C\nfehler() { echo \"Staffel 2, Episode 2: $1\" >&2; exit 1; }\ntmp=$(mktemp -d)\ntrap 'rm -rf \"$tmp\"' EXIT\nif [ ! -d '/home/azubi/belege' ] || [ -L '/home/azubi/belege' ]; then fehler 'Der Belegordner fehlt.'; fi\nif [ -L '/home/azubi/fotos' ] || { [ -e '/home/azubi/fotos' ] && [ ! -d '/home/azubi/fotos' ]; }; then fehler 'Der Fotoordner ist belegt.'; fi\nfor id in prozess-zeile wartung-zeile; do\n  rm -f -- \"/home/azubi/belege/$id.txt\"\n  if [ -e \"/home/azubi/belege/$id.txt\" ] || [ -L \"/home/azubi/belege/$id.txt\" ]; then fehler \"$id.txt ist belegt.\"; fi\ndone\nkonto() {\n  if id \"$2\" >/dev/null 2>&1; then return 0; fi\n  adduser -D -H -u \"$1\" -h \"/home/$2\" -s /sbin/nologin -g \"$3\" \"$2\"\n}\nkonto 1101 timo 'Timo Kessler'\nkonto 1102 nadia 'Nadia Brem'\nkonto 1103 margit 'Margit Ostwind'\nkonto 1105 abgleich 'Abgleich-Dienst'\n# Ein früherer Lauf: Prozess und Cron-Liste weg, bevor der Ausgangszustand neu entsteht.\ncrontab -u abgleich -r 2>/dev/null || true\npkill -x rw-abgleich || true\nfor _ in 1 2 3 4 5 6 7 8 9 10; do pgrep -x rw-abgleich >/dev/null || break; sleep 0.5; done\nprintf '%s\\n' '#!/bin/sh' '# Abgleich der Lagerliste mit der Buchhaltung (fiktive Uebungsdaten)' 'while :; do sleep 30; done' > \"$tmp/abgleich\"\ninstall -d -o root -g root -m 0755 /usr/local/sbin\ninstall -o root -g root -m 0755 \"$tmp/abgleich\" '/usr/local/sbin/rw-abgleich'\nprintf '%s\\n' '* * * * * [ -e /etc/crontabs/abgleich ] && ! pgrep -x rw-abgleich >/dev/null && /usr/local/sbin/rw-abgleich' > \"$tmp/cron\"\ncrontab -u abgleich - < \"$tmp/cron\"\ntouch -d '2026-04-21 00:00:00 UTC' '/etc/crontabs/abgleich'\nprintf '%s\\n' '2026-04-20T07:55:31Z margit login result=ok' '2026-04-20T08:20:14Z timo edit-cron change=RW-2117 target=/etc/crontabs/abgleich' '2026-04-20T08:47:52Z nadia edit-cron change=RW-2122 target=/etc/crontabs/abgleich' '2026-04-20T09:05:03Z timo edit-cron change=RW-2124 target=/etc/crontabs/abgleich' '2026-04-20T09:31:40Z margit edit-cron change=RW-2129 target=/etc/crontabs/abgleich' '2026-04-20T09:44:10Z timo restart-service change=RW-2130 target=crond' '2026-04-20T10:02:18Z nadia login result=ok' > \"$tmp/journal\"\ninstall -o root -g root -m 0644 \"$tmp/journal\" '/var/log/rechenwerk-wartung.log'\ntouch -d '2026-04-20 10:05:00 UTC' '/var/log/rechenwerk-wartung.log'\n# Prozesse vor dem Foto: bildbeleg lädt im Browser beim ersten Mal Schriften und Bibliotheken nach\n# und braucht dafür Minuten. Wer gleich mit ps anfängt, soll den Wiedergänger schon sehen.\npgrep -x crond >/dev/null || crond -c /etc/crontabs\nfor _ in 1 2 3 4 5 6 7 8 9 10; do pgrep -x crond >/dev/null && break; sleep 0.5; done\npgrep -x crond >/dev/null || fehler 'crond startet nicht.'\nsetsid su -s /bin/sh abgleich -c '/usr/local/sbin/rw-abgleich' </dev/null >/dev/null 2>&1 &\nfor _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do pgrep -x rw-abgleich >/dev/null && break; sleep 0.5; done\npgrep -x rw-abgleich >/dev/null || fehler 'Der Prozess läuft nicht.'\ninstall -d -o azubi -g azubi -m 0755 '/home/azubi/fotos'\nrm -f -- '/home/azubi/fotos/IMG_0417.png'\ninstall -m 0644 /staffel-missions/note.png '/home/azubi/fotos/IMG_0417.png'\nchown azubi:azubi '/home/azubi/fotos/IMG_0417.png'\nchmod 0644 '/home/azubi/fotos/IMG_0417.png'\n[ \"$(stat -c '%U:%G:%a' '/etc/crontabs/abgleich')\" = root:root:600 ] || fehler 'Die Cron-Liste hat falsche Rechte.'\n[ \"$(stat -c '%U:%G:%a' '/var/log/rechenwerk-wartung.log')\" = root:root:644 ] || fehler 'Das Journal hat falsche Rechte.'\n[ \"$(stat -c '%U:%G:%a' '/home/azubi/fotos/IMG_0417.png')\" = azubi:azubi:644 ] || fehler 'Das Foto hat falsche Rechte.'\nexit 0\n",
+    "check": {
+      "prozess-zeile": "export LC_ALL=C\nset -f\nd='/home/azubi/belege'\nf=\"$d/prozess-zeile.txt\"\n[ -d \"$d\" ] && [ ! -L \"$d\" ] && [ -f \"$f\" ] && [ ! -L \"$f\" ] && [ -s \"$f\" ] || exit 1\nhas() { [[ $inhalt == *\"$1\"* ]]; }\n{ IFS=: read -r eigner _ groesse; } < <(stat -c '%U:%G:%s' \"$f\")\n[ \"$eigner\" = azubi ] && [ \"$groesse\" -le 65536 ] || exit 1\nIFS= read -r -d '' inhalt < \"$f\"\nzeile=; cron=\nre_pid='^[[:space:]]*[0-9]+[[:space:]]'\nre_dienst='[[:space:]]abgleich[[:space:]]'\nre_crond='[[:space:]](/usr/sbin/)?crond([[:space:]]|$)'\nwhile IFS= read -r z; do\n  [[ $z =~ $re_pid && $z != *grep* ]] || continue\n  [[ $z == *rw-abgleich* && $z =~ $re_dienst ]] && zeile=1\n  [[ $z =~ $re_crond ]] && cron=1\ndone <<< \"$inhalt\"\n[ -n \"$zeile\" ] && [ -n \"$cron\" ]\n",
+      "wartung-zeile": "export LC_ALL=C\nset -f\nd='/home/azubi/belege'\nf=\"$d/wartung-zeile.txt\"\n[ -d \"$d\" ] && [ ! -L \"$d\" ] && [ -f \"$f\" ] && [ ! -L \"$f\" ] && [ -s \"$f\" ] || exit 1\nhas() { [[ $inhalt == *\"$1\"* ]]; }\nj='/var/log/rechenwerk-wartung.log'\n[ -f \"$j\" ] && [ ! -L \"$j\" ] || exit 1\n{ IFS=: read -r eigner _ groesse; IFS=: read -r ju jg _; } < <(stat -c '%U:%G:%s' \"$f\" \"$j\")\n[ \"$ju:$jg\" = root:root ] || exit 1\n[ \"$eigner\" = azubi ] && [ \"$groesse\" -le 65536 ] || exit 1\nIFS= read -r -d '' inhalt < \"$f\"\nziel=; n=0\nwhile IFS= read -r z; do\n  set -- $z\n  if [ \"$2\" = nadia ] && [ \"$3\" = edit-cron ] && [ \"$4\" = change=RW-2122 ]; then\n    ziel=$z; n=$((n + 1))\n  fi\ndone < \"$j\"\n[ \"$n\" = 1 ] && has \"$ziel\" || exit 1\nwhile IFS= read -r z; do\n  set -- $z\n  [ \"$3\" = edit-cron ] && [ \"$z\" != \"$ziel\" ] && has \"$z\" && exit 1\ndone < \"$j\"\nexit 0\n",
+      "wiedergaenger": "export LC_ALL=C\nset -f\nc='/etc/crontabs/abgleich'\ncron=\nif [ -e \"$c\" ] || [ -L \"$c\" ]; then\n  [ -f \"$c\" ] && [ ! -L \"$c\" ] || exit 1\n  IFS= read -r -d '' inhalt < \"$c\" || true\n  [[ $inhalt == *rw-abgleich* ]] && cron=1\nfi\nlaeuft=\nset +f\nre_zombie='\\) Z '\nfor p in /proc/[0-9]*/comm; do\n  read -r n < \"$p\" 2>/dev/null || continue\n  [ \"$n\" = rw-abgleich ] || continue\n  # Ein beendeter Prozess, der noch auf sein Einsammeln wartet (Zombie), läuft nicht mehr.\n  IFS=/ read -r _ _ pid _ <<< \"$p\"\n  read -r st < /proc/$pid/stat 2>/dev/null || continue\n  [[ $st =~ $re_zombie ]] && continue\n  laeuft=1; break\ndone\n[ -z \"$cron\" ] && [ -z \"$laeuft\" ]\n"
+    },
+    "responses": {
+      "kennung": {
+        "question": "Welche Änderungskennung steht auf dem Zettel? (RW-…)",
+        "format": "RW- und vier Ziffern",
+        "script": "a=$(printf %s \"$ANTWORT\" | tr -d ' ' | tr a-z A-Z)\ncase $a in 2122|RW-2122) ;; *) exit 1 ;; esac\nj='/var/log/rechenwerk-wartung.log'\n[ -f \"$j\" ] && [ ! -L \"$j\" ] || exit 1\nIFS= read -r -d '' inhalt < \"$j\" || true\n[[ $inhalt == *\"change=RW-2122 \"* ]]\n"
+      }
+    },
+    "repairs": [
+      "wiedergaenger"
+    ],
+    "sudo": [
+      "/usr/bin/crontab -u abgleich -l",
+      "/usr/bin/crontab -u abgleich -r",
+      "/usr/bin/pkill -x rw-abgleich",
+      "/usr/bin/pkill -u abgleich"
+    ],
+    "evidenceIDs": [
+      "prozess-zeile",
+      "wartung-zeile"
+    ],
+    "minimumEvidence": 2,
+    "resolution": "Das passt zusammen: Der Zettel nennt RW-2122 für den Wächter, und das Wartungsjournal zeigt, wer diese Änderung eingetragen hat. Das war Nadia. Dass Timo und Margit ebenfalls am Cron gearbeitet haben, beweist nichts. Erst die Kennung vom Zettel trennt die Einträge.",
+    "wrongSuspect": "Diese Person passt nicht zu deinen Belegen. Dass jemand am Cron gearbeitet hat, ist noch kein Beweis. Such die Person, die das Journal unter der Kennung vom Zettel nennt.",
+    "insufficientEvidence": "Die Person könnte stimmen, aber die Begründung trägt noch nicht. Ein Prozess allein nennt keine Person. Du brauchst Belege aus beiden Spuren: Was auf dem Server läuft und was auf dem Zettel steht."
+  },
+  {
+    "episode": {
+      "id": 3,
+      "key": "luecke-im-log",
+      "title": "Die Lücke im Log",
+      "caseTitle": "Die Loglücke",
+      "organization": "Rechenwerk Ostwind GmbH",
+      "account": "azubi",
+      "briefing": "Im Anmeldelog fehlt ein Stück der Nacht. Die weitergeleitete Kopie enthält die fehlenden Zeilen. Finde den Zeitraum, sichere die Zeilen und verschiebe das Löschskript unverändert in Quarantäne.",
+      "tracks": [
+        {
+          "id": "luecke",
+          "title": "Lücke",
+          "summary": ""
+        },
+        {
+          "id": "zaehlung",
+          "title": "Zählung",
+          "summary": ""
+        }
+      ],
+      "evidenceSpecs": [
+        {
+          "id": "konten-zaehlung",
+          "trackID": "zaehlung",
+          "fileName": "konten-zaehlung.txt",
+          "title": "Sichere die Häufigkeit je Konto",
+          "requiredFragments": [],
+          "forbiddenFragments": [],
+          "hint": "In den fehlenden Zeilen kommt Nadia am häufigsten vor, vor Margit und Timo."
+        },
+        {
+          "id": "luecke-zeilen",
+          "trackID": "luecke",
+          "fileName": "luecke-zeilen.txt",
+          "title": "Sichere die fehlenden Zeilen",
+          "requiredFragments": [],
+          "forbiddenFragments": [],
+          "hint": "Die fehlenden Zeilen zeigen Nadia im Fernzugang und das Skript logkuerzen.sh unter RW-1051."
+        }
+      ],
+      "suspects": [
+        {
+          "id": "timo",
+          "name": "Timo Kessler",
+          "role": "Systemadministrator, richtete die Logweiterleitung ein",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        },
+        {
+          "id": "nadia",
+          "name": "Nadia Brem",
+          "role": "Datenbankverwaltung, Fernwartung",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        },
+        {
+          "id": "margit",
+          "name": "Margit Ostwind",
+          "role": "Geschäftsführerin, kennt alle Passwörter",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        }
+      ],
+      "culpritID": "nadia",
+      "steps": [
+        {
+          "id": "zeitraum",
+          "trackID": "luecke",
+          "title": "Lies ab, wann Zeilen fehlen",
+          "detail": "Schritt 1: Vergleiche Log und Kopie und trag unten ein, wann die erste und wann die letzte fehlende Zeile steht.",
+          "command": null,
+          "hints": [
+            "Das Log und seine Kopie sind fast gleich. Such die Zeilen, die nur in der Kopie stehen, und lies die Uhrzeit der ersten und der letzten.",
+            "Mit find /srv/rechenwerk -name '*.log' findest du die Kopie. diff vergleicht zwei Dateien Zeile für Zeile; Zeilen, die nur in der zweiten stehen, beginnen mit >. Die Uhrzeit steckt in jeder Zeile hinter dem T.",
+            "diff /var/log/rechenwerk-auth.log /srv/rechenwerk/log-spiegel/rechenwerk-auth.log zeigt die fehlenden Zeilen; trag die Uhrzeit der ersten und der letzten als HH:MM-HH:MM ein."
+          ]
+        },
+        {
+          "id": "luecke-zeilen",
+          "trackID": "luecke",
+          "title": "Sichere die fehlenden Zeilen",
+          "detail": "Sichere genau die Zeilen, die nur in der Kopie stehen, unverändert als ~/belege/luecke-zeilen.txt. Ein Beleg ist die echte Ausgabe eines Befehls, in die Datei umgeleitet. Abgetippter Text zählt nicht.",
+          "command": null,
+          "hints": [
+            "Du hast die fehlenden Zeilen schon gesehen. Jetzt gehören genau sie, und nur sie, unverändert in den Beleg.",
+            "diff zeigt sie mit > am Anfang; das stört den Beleg nicht. grep -vxFf LOG KOPIE gibt dieselben Zeilen ohne Markierung aus, ganz ohne Hilfsdatei. Mit > schreibst du das Ergebnis in eine Datei.",
+            "grep -vxFf /var/log/rechenwerk-auth.log /srv/rechenwerk/log-spiegel/rechenwerk-auth.log > ~/belege/luecke-zeilen.txt"
+          ]
+        },
+        {
+          "id": "konten-zaehlung",
+          "trackID": "zaehlung",
+          "title": "Sichere die Häufigkeit je Konto",
+          "detail": "Gezählt werden nur die fehlenden Zeilen, nicht das ganze Log.",
+          "command": null,
+          "hints": [
+            "Das Konto steht in jeder Zeile an zweiter Stelle. Hol erst die fehlenden Zeilen, dann die zweite Spalte, dann zähl.",
+            "cut -d' ' -f2 oder awk '{print $2}' holt die zweite Spalte. sort bringt gleiche Zeilen untereinander, uniq -c zählt sie. Die Pipe | reicht die Ausgabe weiter.",
+            "grep -vxFf /var/log/rechenwerk-auth.log /srv/rechenwerk/log-spiegel/rechenwerk-auth.log | cut -d' ' -f2 | sort | uniq -c > ~/belege/konten-zaehlung.txt"
+          ]
+        },
+        {
+          "id": "skript-quarantaene",
+          "trackID": "zaehlung",
+          "title": "Verschiebe das Löschskript in die Quarantäne",
+          "detail": "Andere Skripte im Ordner gehören nicht dazu. Welches in der Lücke lief, steht in den fehlenden Zeilen.",
+          "command": null,
+          "hints": [
+            "In den fehlenden Zeilen steht hinter target= der Pfad des Skripts. Verschieben heißt: Das Original ist danach weg.",
+            "Mit mkdir -p legst du ~/quarantaene an, mit mv verschiebst du eine Datei dorthin. Andere Skripte im Ordner lässt du, wo sie sind.",
+            "mkdir -p ~/quarantaene && mv /srv/rechenwerk/wartung/bin/logkuerzen.sh ~/quarantaene/"
+          ]
+        }
+      ],
+      "playable": true
+    },
+    "steps": [
+      {
+        "id": "zeitraum",
+        "trackID": "luecke",
+        "title": "Lies ab, wann Zeilen fehlen",
+        "detail": "Schritt 1: Vergleiche Log und Kopie und trag unten ein, wann die erste und wann die letzte fehlende Zeile steht.",
+        "command": null,
+        "hints": [
+          "Das Log und seine Kopie sind fast gleich. Such die Zeilen, die nur in der Kopie stehen, und lies die Uhrzeit der ersten und der letzten.",
+          "Mit find /srv/rechenwerk -name '*.log' findest du die Kopie. diff vergleicht zwei Dateien Zeile für Zeile; Zeilen, die nur in der zweiten stehen, beginnen mit >. Die Uhrzeit steckt in jeder Zeile hinter dem T.",
+          "diff /var/log/rechenwerk-auth.log /srv/rechenwerk/log-spiegel/rechenwerk-auth.log zeigt die fehlenden Zeilen; trag die Uhrzeit der ersten und der letzten als HH:MM-HH:MM ein."
+        ]
+      },
+      {
+        "id": "luecke-zeilen",
+        "trackID": "luecke",
+        "title": "Sichere die fehlenden Zeilen",
+        "detail": "Sichere genau die Zeilen, die nur in der Kopie stehen, unverändert als ~/belege/luecke-zeilen.txt. Ein Beleg ist die echte Ausgabe eines Befehls, in die Datei umgeleitet. Abgetippter Text zählt nicht.",
+        "command": null,
+        "hints": [
+          "Du hast die fehlenden Zeilen schon gesehen. Jetzt gehören genau sie, und nur sie, unverändert in den Beleg.",
+          "diff zeigt sie mit > am Anfang; das stört den Beleg nicht. grep -vxFf LOG KOPIE gibt dieselben Zeilen ohne Markierung aus, ganz ohne Hilfsdatei. Mit > schreibst du das Ergebnis in eine Datei.",
+          "grep -vxFf /var/log/rechenwerk-auth.log /srv/rechenwerk/log-spiegel/rechenwerk-auth.log > ~/belege/luecke-zeilen.txt"
+        ]
+      },
+      {
+        "id": "konten-zaehlung",
+        "trackID": "zaehlung",
+        "title": "Sichere die Häufigkeit je Konto",
+        "detail": "Gezählt werden nur die fehlenden Zeilen, nicht das ganze Log.",
+        "command": null,
+        "hints": [
+          "Das Konto steht in jeder Zeile an zweiter Stelle. Hol erst die fehlenden Zeilen, dann die zweite Spalte, dann zähl.",
+          "cut -d' ' -f2 oder awk '{print $2}' holt die zweite Spalte. sort bringt gleiche Zeilen untereinander, uniq -c zählt sie. Die Pipe | reicht die Ausgabe weiter.",
+          "grep -vxFf /var/log/rechenwerk-auth.log /srv/rechenwerk/log-spiegel/rechenwerk-auth.log | cut -d' ' -f2 | sort | uniq -c > ~/belege/konten-zaehlung.txt"
+        ]
+      },
+      {
+        "id": "skript-quarantaene",
+        "trackID": "zaehlung",
+        "title": "Verschiebe das Löschskript in die Quarantäne",
+        "detail": "Andere Skripte im Ordner gehören nicht dazu. Welches in der Lücke lief, steht in den fehlenden Zeilen.",
+        "command": null,
+        "hints": [
+          "In den fehlenden Zeilen steht hinter target= der Pfad des Skripts. Verschieben heißt: Das Original ist danach weg.",
+          "Mit mkdir -p legst du ~/quarantaene an, mit mv verschiebst du eine Datei dorthin. Andere Skripte im Ordner lässt du, wo sie sind.",
+          "mkdir -p ~/quarantaene && mv /srv/rechenwerk/wartung/bin/logkuerzen.sh ~/quarantaene/"
+        ]
+      }
+    ],
+    "setup": "set -eu\nexport LC_ALL=C\nfehler() { echo \"Staffel 2, Episode 3: $1\" >&2; exit 1; }\ntmp=$(mktemp -d)\ntrap 'rm -rf \"$tmp\"' EXIT\nif [ ! -d '/home/azubi/belege' ] || [ -L '/home/azubi/belege' ]; then fehler 'Der Belegordner fehlt.'; fi\nfor p in /srv/rechenwerk '/srv/rechenwerk/log-spiegel' '/srv/rechenwerk/wartung' '/srv/rechenwerk/wartung/bin' '/srv/rechenwerk/wartung/archiv'; do\n  if [ -L \"$p\" ] || { [ -e \"$p\" ] && [ ! -d \"$p\" ]; }; then fehler 'Ein Ordner der Episode ist belegt.'; fi\ndone\nfor p in '/var/log/rechenwerk-auth.log' '/srv/rechenwerk/log-spiegel/rechenwerk-auth.log'; do\n  if [ -L \"$p\" ] || [ -d \"$p\" ]; then fehler 'Eine Logdatei der Episode ist belegt.'; fi\ndone\nfor id in luecke-zeilen konten-zaehlung; do\n  rm -f -- \"/home/azubi/belege/$id.txt\"\n  if [ -e \"/home/azubi/belege/$id.txt\" ] || [ -L \"/home/azubi/belege/$id.txt\" ]; then fehler \"$id.txt ist belegt.\"; fi\ndone\nkonto() {\n  if id \"$2\" >/dev/null 2>&1; then return 0; fi\n  adduser -D -H -u \"$1\" -h \"/home/$2\" -s /sbin/nologin -g \"$3\" \"$2\"\n}\nkonto 1101 timo 'Timo Kessler'\nkonto 1102 nadia 'Nadia Brem'\nkonto 1103 margit 'Margit Ostwind'\nprintf '%s' '#!/bin/sh\n# logkuerzen.sh: schneidet einen Zeitraum aus dem Anmeldelog (fiktive Uebungsdaten)\n# Aenderung RW-1051, Aufruf: logkuerzen.sh VON BIS\necho '\\''Uebungsdatei: tut nichts.'\\''\nexit 0\n' > \"$tmp/s0\"\nprintf '%s' '#!/bin/sh\n# backup.sh: sichert die Daten nachts (fiktive Uebungsdaten)\necho '\\''Uebungsdatei: tut nichts.'\\''\nexit 0\n' > \"$tmp/s1\"\nprintf '%s' '#!/bin/sh\n# logrotate-woechentlich.sh: rotiert die Logs am Sonntag (fiktive Uebungsdaten)\necho '\\''Uebungsdatei: tut nichts.'\\''\nexit 0\n' > \"$tmp/s2\"\nif [ -d '/srv/rechenwerk/wartung/bin/logkuerzen.sh' ] && [ ! -L '/srv/rechenwerk/wartung/bin/logkuerzen.sh' ]; then fehler 'Ein Skriptname ist belegt.'; fi\nif [ -d '/srv/rechenwerk/wartung/bin/backup.sh' ] && [ ! -L '/srv/rechenwerk/wartung/bin/backup.sh' ]; then fehler 'Ein Skriptname ist belegt.'; fi\nif [ -d '/srv/rechenwerk/wartung/bin/logrotate-woechentlich.sh' ] && [ ! -L '/srv/rechenwerk/wartung/bin/logrotate-woechentlich.sh' ]; then fehler 'Ein Skriptname ist belegt.'; fi\nq='/home/azubi/quarantaene'\nif [ -d \"$q\" ] && [ ! -L \"$q\" ]; then\n  for p in \"$q\"/*; do\n    [ -f \"$p\" ] && [ ! -L \"$p\" ] || continue\n    for s in \"$tmp/s0\" \"$tmp/s1\" \"$tmp/s2\"; do\n      if cmp -s \"$p\" \"$s\"; then rm -f -- \"$p\"; fi\n    done\n  done\nfi\ninstall -d -o root -g root -m 0755 /srv/rechenwerk '/srv/rechenwerk/log-spiegel' '/srv/rechenwerk/wartung' '/srv/rechenwerk/wartung/archiv'\ninstall -d -o azubi -g azubi -m 0755 '/srv/rechenwerk/wartung/bin'\nrm -f -- '/srv/rechenwerk/wartung/bin/logkuerzen.sh'\ninstall -o nadia -g nadia -m 0755 \"$tmp/s0\" '/srv/rechenwerk/wartung/bin/logkuerzen.sh'\ntouch -d '2026-04-16 21:10:00 UTC' '/srv/rechenwerk/wartung/bin/logkuerzen.sh'\ninstall -o root -g root -m 0644 \"$tmp/s0\" '/srv/rechenwerk/wartung/archiv/logkuerzen.sh.sicherung'\nrm -f -- '/srv/rechenwerk/wartung/bin/backup.sh'\ninstall -o timo -g timo -m 0755 \"$tmp/s1\" '/srv/rechenwerk/wartung/bin/backup.sh'\ntouch -d '2026-04-16 21:10:00 UTC' '/srv/rechenwerk/wartung/bin/backup.sh'\ninstall -o root -g root -m 0644 \"$tmp/s1\" '/srv/rechenwerk/wartung/archiv/backup.sh.sicherung'\nrm -f -- '/srv/rechenwerk/wartung/bin/logrotate-woechentlich.sh'\ninstall -o timo -g timo -m 0755 \"$tmp/s2\" '/srv/rechenwerk/wartung/bin/logrotate-woechentlich.sh'\ntouch -d '2026-04-16 21:10:00 UTC' '/srv/rechenwerk/wartung/bin/logrotate-woechentlich.sh'\ninstall -o root -g root -m 0644 \"$tmp/s2\" '/srv/rechenwerk/wartung/archiv/logrotate-woechentlich.sh.sicherung'\nprintf '%s\\n' '2026-04-17T22:41:06Z margit logout result=ok' '2026-04-17T23:05:03Z timo cron-backup result=ok target=/srv/rechenwerk/backup' '2026-04-17T23:42:55Z timo login result=ok src=konsole' '2026-04-18T00:05:02Z timo cron-backup result=ok target=/srv/rechenwerk/backup' '2026-04-18T00:19:37Z timo edit-config change=RW-1048 target=/etc/hosts' '2026-04-18T00:48:19Z timo logout result=ok' '2026-04-18T01:05:03Z timo cron-backup result=ok target=/srv/rechenwerk/backup' '2026-04-18T01:20:36Z timo cron-rotate result=ok target=/var/log' '2026-04-18T01:44:19Z timo login result=ok src=konsole' '2026-04-18T01:52:08Z timo edit-config change=RW-1049 target=/etc/rechenwerk/log.conf' '2026-04-18T02:05:02Z timo cron-backup result=ok target=/srv/rechenwerk/backup' '2026-04-18T02:07:51Z timo logout result=ok' '2026-04-18T04:05:02Z timo cron-backup result=ok target=/srv/rechenwerk/backup' '2026-04-18T05:05:03Z timo cron-backup result=ok target=/srv/rechenwerk/backup' '2026-04-18T06:05:02Z timo cron-backup result=ok target=/srv/rechenwerk/backup' '2026-04-18T06:12:40Z timo login result=ok src=konsole' '2026-04-18T06:25:17Z timo logout result=ok' > \"$tmp/log\"\nprintf '%s\\n' '2026-04-17T22:41:06Z margit logout result=ok' '2026-04-17T23:05:03Z timo cron-backup result=ok target=/srv/rechenwerk/backup' '2026-04-17T23:42:55Z timo login result=ok src=konsole' '2026-04-18T00:05:02Z timo cron-backup result=ok target=/srv/rechenwerk/backup' '2026-04-18T00:19:37Z timo edit-config change=RW-1048 target=/etc/hosts' '2026-04-18T00:48:19Z timo logout result=ok' '2026-04-18T01:05:03Z timo cron-backup result=ok target=/srv/rechenwerk/backup' '2026-04-18T01:20:36Z timo cron-rotate result=ok target=/var/log' '2026-04-18T01:44:19Z timo login result=ok src=konsole' '2026-04-18T01:52:08Z timo edit-config change=RW-1049 target=/etc/rechenwerk/log.conf' '2026-04-18T02:05:02Z timo cron-backup result=ok target=/srv/rechenwerk/backup' '2026-04-18T02:07:51Z timo logout result=ok' '2026-04-18T02:14:21Z nadia login result=ok src=fernwartung' '2026-04-18T02:16:48Z margit login result=ok src=konsole' '2026-04-18T02:19:05Z margit logout result=ok' '2026-04-18T02:21:37Z nadia run-script change=RW-1051 target=/srv/rechenwerk/wartung/bin/logkuerzen.sh' '2026-04-18T02:48:10Z nadia list-files change=RW-1051 target=/srv/rechenwerk/backup' '2026-04-18T03:05:03Z timo cron-backup result=ok target=/srv/rechenwerk/backup' '2026-04-18T03:09:26Z nadia logout result=ok' '2026-04-18T04:05:02Z timo cron-backup result=ok target=/srv/rechenwerk/backup' '2026-04-18T05:05:03Z timo cron-backup result=ok target=/srv/rechenwerk/backup' '2026-04-18T06:05:02Z timo cron-backup result=ok target=/srv/rechenwerk/backup' '2026-04-18T06:12:40Z timo login result=ok src=konsole' '2026-04-18T06:25:17Z timo logout result=ok' > \"$tmp/kopie\"\ninstall -o root -g root -m 0644 \"$tmp/log\" '/var/log/rechenwerk-auth.log'\ntouch -d '2026-04-18 06:30:00 UTC' '/var/log/rechenwerk-auth.log'\ninstall -o root -g root -m 0644 \"$tmp/kopie\" '/srv/rechenwerk/log-spiegel/rechenwerk-auth.log'\ntouch -d '2026-04-18 06:30:00 UTC' '/srv/rechenwerk/log-spiegel/rechenwerk-auth.log'\n[ \"$(stat -c '%U:%G:%a' '/var/log/rechenwerk-auth.log')\" = root:root:644 ] || fehler 'Das Log hat falsche Rechte.'\n[ \"$(stat -c '%U:%G:%a' '/srv/rechenwerk/log-spiegel/rechenwerk-auth.log')\" = root:root:644 ] || fehler 'Die Kopie hat falsche Rechte.'\n[ \"$(stat -c '%U:%G:%a' '/srv/rechenwerk/wartung/bin/logkuerzen.sh')\" = nadia:nadia:755 ] || fehler 'Das Skript hat falsche Rechte.'\n[ \"$(stat -c '%U:%G:%a' '/srv/rechenwerk/wartung/bin')\" = azubi:azubi:755 ] || fehler 'Der Skriptordner hat falsche Rechte.'\n[ \"$(stat -c %y '/var/log/rechenwerk-auth.log' | cut -c1-19)\" = '2026-04-18 06:30:00' ] || fehler 'Die Zeit des Logs stimmt nicht.'\nexit 0\n",
+    "check": {
+      "konten-zaehlung": "export LC_ALL=C\nset -f\nd='/home/azubi/belege'\nf=\"$d/konten-zaehlung.txt\"\n[ -d \"$d\" ] && [ ! -L \"$d\" ] && [ -f \"$f\" ] && [ ! -L \"$f\" ] && [ -s \"$f\" ] || exit 1\nhas() { [[ $inhalt == *\"$1\"* ]]; }\nl='/var/log/rechenwerk-auth.log'\nk='/srv/rechenwerk/log-spiegel/rechenwerk-auth.log'\n[ -f \"$l\" ] && [ ! -L \"$l\" ] && [ -f \"$k\" ] && [ ! -L \"$k\" ] || exit 1\nIFS= read -r -d '' logtext < \"$l\"\nIFS= read -r -d '' kopietext < \"$k\"\nlogtext=$'\\n'$logtext\nfehlt=(); n=0\nwhile IFS= read -r z; do\n  [[ -n $z && $logtext != *$'\\n'\"$z\"$'\\n'* ]] && { fehlt+=(\"$z\"); n=$((n + 1)); }\ndone <<< \"$kopietext\"\n[ \"$n\" -ge 1 ] || exit 1\n{ IFS=: read -r eigner _ groesse; } < <(stat -c '%U:%G:%s' \"$f\")\n[ \"$eigner\" = azubi ] && [ \"$groesse\" -le 65536 ] || exit 1\nIFS= read -r -d '' inhalt < \"$f\"\ndeclare -A soll ist\nfor z in \"${fehlt[@]}\"; do\n  read -r _ konto _ <<< \"$z\"\n  soll[$konto]=$((${soll[$konto]:-0} + 1))\ndone\nre1='^[[:space:]]*([0-9]+)[[:space:]]+([a-z]+)[[:space:]]*$'\nre2='^[[:space:]]*([a-z]+)[[:space:]:=]+([0-9]+)[[:space:]]*$'\ngelesen=0; falsch=0; fehlend=0\nwhile IFS= read -r z; do\n  if [[ $z =~ $re1 ]]; then zahl=${BASH_REMATCH[1]}; konto=${BASH_REMATCH[2]}\n  elif [[ $z =~ $re2 ]]; then konto=${BASH_REMATCH[1]}; zahl=${BASH_REMATCH[2]}\n  else continue; fi\n  gelesen=$((gelesen + 1))\n  if [ -z \"${soll[$konto]:-}\" ] || [ \"${ist[$konto]:-$zahl}\" != \"$zahl\" ] || [ \"${soll[$konto]}\" != \"$zahl\" ]; then falsch=1; fi\n  ist[$konto]=$zahl\ndone <<< \"$inhalt\"\nfor konto in \"${!soll[@]}\"; do\n  [ -n \"${ist[$konto]:-}\" ] || fehlend=$((fehlend + 1))\ndone\n[ \"$gelesen\" -ge 1 ] && [ \"$falsch\" = 0 ] && [ \"$fehlend\" = 0 ]\n",
+      "luecke-zeilen": "export LC_ALL=C\nset -f\nd='/home/azubi/belege'\nf=\"$d/luecke-zeilen.txt\"\n[ -d \"$d\" ] && [ ! -L \"$d\" ] && [ -f \"$f\" ] && [ ! -L \"$f\" ] && [ -s \"$f\" ] || exit 1\nhas() { [[ $inhalt == *\"$1\"* ]]; }\nl='/var/log/rechenwerk-auth.log'\nk='/srv/rechenwerk/log-spiegel/rechenwerk-auth.log'\n[ -f \"$l\" ] && [ ! -L \"$l\" ] && [ -f \"$k\" ] && [ ! -L \"$k\" ] || exit 1\nIFS= read -r -d '' logtext < \"$l\"\nIFS= read -r -d '' kopietext < \"$k\"\nlogtext=$'\\n'$logtext\nfehlt=(); n=0\nwhile IFS= read -r z; do\n  [[ -n $z && $logtext != *$'\\n'\"$z\"$'\\n'* ]] && { fehlt+=(\"$z\"); n=$((n + 1)); }\ndone <<< \"$kopietext\"\n[ \"$n\" -ge 1 ] || exit 1\n{ IFS=: read -r eigner _ groesse; } < <(stat -c '%U:%G:%s' \"$f\")\n[ \"$eigner\" = azubi ] && [ \"$groesse\" -le 65536 ] || exit 1\nIFS= read -r -d '' inhalt < \"$f\"\nfor z in \"${fehlt[@]}\"; do has \"$z\" || exit 1; done\nbekannt=0\npm='[-+<> ]'\nwhile IFS= read -r z; do\n  while [[ $z == $pm* ]]; do z=${z:1}; done\n  [[ -n $z && $logtext == *$'\\n'\"$z\"$'\\n'* ]] && bekannt=$((bekannt + 1))\ndone <<< \"$inhalt\"\n[ \"$bekannt\" -le 8 ]\n",
+      "skript-quarantaene": "export LC_ALL=C\nw='/srv/rechenwerk/wartung'\no='/srv/rechenwerk/wartung/bin/logkuerzen.sh'\nq='/home/azubi/quarantaene'\nsoll='#!/bin/sh\n# logkuerzen.sh: schneidet einen Zeitraum aus dem Anmeldelog (fiktive Uebungsdaten)\n# Aenderung RW-1051, Aufruf: logkuerzen.sh VON BIS\necho '\\''Uebungsdatei: tut nichts.'\\''\nexit 0\n'\ndecoy1='#!/bin/sh\n# backup.sh: sichert die Daten nachts (fiktive Uebungsdaten)\necho '\\''Uebungsdatei: tut nichts.'\\''\nexit 0\n'\ndecoy2='#!/bin/sh\n# logrotate-woechentlich.sh: rotiert die Logs am Sonntag (fiktive Uebungsdaten)\necho '\\''Uebungsdatei: tut nichts.'\\''\nexit 0\n'\nda=0; fremd=0; kopie=0\nif [ -d \"$q\" ] && [ ! -L \"$q\" ]; then\n  for p in \"$q\"/*; do\n    [ -f \"$p\" ] && [ ! -L \"$p\" ] || continue\n    IFS= read -r -d '' -n 65536 inhalt < \"$p\"\n    if [[ $inhalt == \"$soll\" ]]; then da=1\n    elif [[ $inhalt == \"$decoy1\" || $inhalt == \"$decoy2\" ]]; then fremd=1; fi\n  done\nfi\nfor p in \"$w\"/bin/* \"$w\"/*; do\n  [ -f \"$p\" ] && [ ! -L \"$p\" ] || continue\n  IFS= read -r -d '' -n 65536 inhalt < \"$p\"\n  if [[ $inhalt == \"$soll\" ]]; then kopie=1; fi\ndone\n[ -d \"$q\" ] && [ ! -L \"$q\" ] && [ ! -e \"$o\" ] && [ ! -L \"$o\" ] || exit 1\n[ \"$da\" = 1 ] && [ \"$fremd\" = 0 ] && [ \"$kopie\" = 0 ]\n"
+    },
+    "responses": {
+      "zeitraum": {
+        "question": "Wann steht die erste, wann die letzte fehlende Zeile? (HH:MM-HH:MM)",
+        "format": "Zwei Uhrzeiten mit Bindestrich, zum Beispiel 01:30-02:45",
+        "script": "export LC_ALL=C\nset -f\nl='/var/log/rechenwerk-auth.log'\nk='/srv/rechenwerk/log-spiegel/rechenwerk-auth.log'\n[ -f \"$l\" ] && [ ! -L \"$l\" ] && [ -f \"$k\" ] && [ ! -L \"$k\" ] || exit 1\nIFS= read -r -d '' logtext < \"$l\"\nIFS= read -r -d '' kopietext < \"$k\"\nlogtext=$'\\n'$logtext\nfehlt=(); n=0\nwhile IFS= read -r z; do\n  [[ -n $z && $logtext != *$'\\n'\"$z\"$'\\n'* ]] && { fehlt+=(\"$z\"); n=$((n + 1)); }\ndone <<< \"$kopietext\"\n[ \"$n\" -ge 1 ] || exit 1\nt=${fehlt[0]%% *}\nvon=${t:11:5}\nt=${fehlt[$((n - 1))]%% *}\nbis=${t:11:5}\na=${ANTWORT//[[:space:]]/}\n[ \"$a\" = \"$von-$bis\" ]\n"
+      }
+    },
+    "repairs": [
+      "skript-quarantaene"
+    ],
+    "sudo": [],
+    "evidenceIDs": [
+      "konten-zaehlung",
+      "luecke-zeilen"
+    ],
+    "minimumEvidence": 2,
+    "resolution": "Das passt zusammen: Die fehlenden Zeilen zeigen, dass Nadia im Fernzugang das Skript logkuerzen.sh unter RW-1051 gestartet hat, und in der Lücke steht sie am häufigsten. Dass Timo im ganzen Log öfter vorkommt, hätte allein nichts bewiesen. Erst die Lücke selbst zeigt, wer sie geschnitten hat.",
+    "wrongSuspect": "Diese Person passt nicht zu deinen Belegen. Wer im ganzen Log oft vorkommt oder kurz im Haus war, hat die Zeilen nicht automatisch entfernt. Such die Person, die in den fehlenden Zeilen selbst etwas ausgeführt hat.",
+    "insufficientEvidence": "Die Person könnte stimmen, aber die Begründung trägt noch nicht. Die fehlenden Zeilen allein sagen nicht, wer in der Lücke am meisten getan hat. Du brauchst Belege aus beiden Spuren: die fehlenden Zeilen und die Zählung der Konten."
+  },
+  {
+    "episode": {
+      "id": 4,
+      "key": "falscher-anhang",
+      "title": "Der falsche Anhang",
+      "caseTitle": "Freigabe und Vorlage",
+      "organization": "Rechenwerk Ostwind GmbH",
+      "account": "azubi",
+      "briefing": "Margit bringt die Originalfreigabe. Vergleiche sie mit dem Entwurf und sichere den Änderungsverlauf. Der Dateiname verrät nichts über die Spalten.",
+      "tracks": [
+        {
+          "id": "freigabe",
+          "title": "Freigabe",
+          "summary": ""
+        },
+        {
+          "id": "vorlage",
+          "title": "Vorlage",
+          "summary": ""
+        }
+      ],
+      "evidenceSpecs": [
+        {
+          "id": "anhang-kopf",
+          "trackID": "freigabe",
+          "title": "Kopfzeile sichern",
+          "fileName": "anhang-kopf.txt",
+          "requiredFragments": [],
+          "forbiddenFragments": [],
+          "hint": "Speichere genau die erste Zeile des Entwurfs."
+        },
+        {
+          "id": "anhang-audit",
+          "trackID": "vorlage",
+          "title": "Änderungsverlauf sichern",
+          "fileName": "anhang-audit.txt",
+          "requiredFragments": [],
+          "forbiddenFragments": [],
+          "hint": "Sichere die beiden Zeilen zu der Freigabekennung."
+        }
+      ],
+      "suspects": [
+        {
+          "id": "timo",
+          "name": "Timo Kessler",
+          "role": "Systemadministrator",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        },
+        {
+          "id": "nadia",
+          "name": "Nadia Brem",
+          "role": "Datenbankverwaltung",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        },
+        {
+          "id": "margit",
+          "name": "Margit Ostwind",
+          "role": "Schichtleitung und Freigabe",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        }
+      ],
+      "culpritID": "timo",
+      "steps": [
+        {
+          "id": "freigabe-id",
+          "trackID": "freigabe",
+          "title": "Welche Freigabekennung nennt Margit?",
+          "detail": "Öffne freigabe.png im Bildbetrachter oder lies die gleichwertige Abschrift freigabe.txt.",
+          "command": null,
+          "hints": []
+        },
+        {
+          "id": "anhang-kopf",
+          "trackID": "freigabe",
+          "title": "Kopfzeile sichern",
+          "detail": "Speichere genau die erste Zeile des Entwurfs.",
+          "command": null,
+          "hints": [
+            "head -n 1 ~/faelle/04/entwurf.tsv > ~/belege/anhang-kopf.txt"
+          ]
+        },
+        {
+          "id": "zusatzfelder",
+          "trackID": "vorlage",
+          "title": "Welche zwei Felder stehen zusätzlich im Entwurf?",
+          "detail": "Vergleiche die Kopfzeile im Editor mit der Freigabe.",
+          "command": null,
+          "hints": []
+        },
+        {
+          "id": "anhang-audit",
+          "trackID": "vorlage",
+          "title": "Änderungsverlauf sichern",
+          "detail": "Sichere die beiden Zeilen zu der Freigabekennung.",
+          "command": null,
+          "hints": [
+            "grep '^RW-3074' ~/faelle/04/aenderungen.tsv > ~/belege/anhang-audit.txt"
+          ]
+        },
+        {
+          "id": "vorlage-konto",
+          "trackID": "vorlage",
+          "title": "Wer erweiterte die Exportvorlage?",
+          "detail": "Lies das Konto der Änderung ab.",
+          "command": null,
+          "hints": []
+        }
+      ],
+      "playable": true
+    },
+    "desktop": {
+      "initialApp": "files",
+      "editor": "entwurf.tsv",
+      "photo": "freigabe.png",
+      "directory": "faelle/04"
+    },
+    "steps": [
+      {
+        "id": "freigabe-id",
+        "trackID": "freigabe",
+        "title": "Welche Freigabekennung nennt Margit?",
+        "detail": "Öffne freigabe.png im Bildbetrachter oder lies die gleichwertige Abschrift freigabe.txt.",
+        "command": null,
+        "hints": []
+      },
+      {
+        "id": "anhang-kopf",
+        "trackID": "freigabe",
+        "title": "Kopfzeile sichern",
+        "detail": "Speichere genau die erste Zeile des Entwurfs.",
+        "command": null,
+        "hints": [
+          "head -n 1 ~/faelle/04/entwurf.tsv > ~/belege/anhang-kopf.txt"
+        ]
+      },
+      {
+        "id": "zusatzfelder",
+        "trackID": "vorlage",
+        "title": "Welche zwei Felder stehen zusätzlich im Entwurf?",
+        "detail": "Vergleiche die Kopfzeile im Editor mit der Freigabe.",
+        "command": null,
+        "hints": []
+      },
+      {
+        "id": "anhang-audit",
+        "trackID": "vorlage",
+        "title": "Änderungsverlauf sichern",
+        "detail": "Sichere die beiden Zeilen zu der Freigabekennung.",
+        "command": null,
+        "hints": [
+          "grep '^RW-3074' ~/faelle/04/aenderungen.tsv > ~/belege/anhang-audit.txt"
+        ]
+      },
+      {
+        "id": "vorlage-konto",
+        "trackID": "vorlage",
+        "title": "Wer erweiterte die Exportvorlage?",
+        "detail": "Lies das Konto der Änderung ab.",
+        "command": null,
+        "hints": []
+      }
+    ],
+    "setup": "set -eu\nmkdir -p /home/azubi/faelle/04\nmkdir -p '/home/azubi/faelle/04'; printf %s 'RW-3074 · Margit Ostwind\nNur Messwerte\nErlaubt: sensor_id, temperatur_c, zeit_utc\n' > '/home/azubi/faelle/04/freigabe.txt'\nmkdir -p '/home/azubi/faelle/04'; printf %s 'sensor_id\ttemperatur_c\tzeit_utc\tkunden_ref\tkontakt\nOST-14\t22.4\t2026-04-18T00:00:00Z\tDEMO-07\tprobe@example.invalid\n' > '/home/azubi/faelle/04/entwurf.tsv'\nmkdir -p '/home/azubi/faelle/04'; printf %s 'kennung\tkonto\taktion\nRW-3074\tmargit\tfreigabe_messwerte\nRW-3074\ttimo\texportvorlage_erweitert\n' > '/home/azubi/faelle/04/aenderungen.tsv'\ninstall -m 0644 /staffel-missions/freigabe.png /home/azubi/faelle/04/freigabe.png",
+    "check": {
+      "anhang-kopf": "{ file='/home/azubi/belege/anhang-kopf.txt'; [ -f \"$file\" ] && [ ! -L \"$file\" ] && printf %s 'sensor_id\ttemperatur_c\tzeit_utc\tkunden_ref\tkontakt\n' | cmp -s - \"$file\"; }",
+      "anhang-audit": "{ file='/home/azubi/belege/anhang-audit.txt'; [ -f \"$file\" ] && [ ! -L \"$file\" ] && printf %s 'RW-3074\tmargit\tfreigabe_messwerte\nRW-3074\ttimo\texportvorlage_erweitert\n' | cmp -s - \"$file\"; }"
+    },
+    "responses": {
+      "freigabe-id": {
+        "question": "Welche Freigabekennung nennt Margit?",
+        "format": "RW- und vier Ziffern",
+        "script": "a=$(printf '%s' \"$ANTWORT\" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr '[:upper:]' '[:lower:]')\ncase \"$a\" in 'rw-3074') exit 0 ;; *) exit 1 ;; esac"
+      },
+      "zusatzfelder": {
+        "question": "Welche zwei Felder stehen zusätzlich im Entwurf?",
+        "format": "Zwei Spaltennamen, durch Komma getrennt",
+        "script": "a=$(printf '%s' \"$ANTWORT\" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr '[:upper:]' '[:lower:]')\ncase \"$a\" in 'kunden_ref,kontakt'|'kontakt,kunden_ref'|'kunden_ref, kontakt'|'kontakt, kunden_ref') exit 0 ;; *) exit 1 ;; esac"
+      },
+      "vorlage-konto": {
+        "question": "Wer erweiterte die Exportvorlage?",
+        "format": "Kontoname",
+        "script": "a=$(printf '%s' \"$ANTWORT\" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr '[:upper:]' '[:lower:]')\ncase \"$a\" in 'timo') exit 0 ;; *) exit 1 ;; esac"
+      }
+    },
+    "repairs": [],
+    "sudo": [],
+    "evidenceIDs": [
+      "anhang-kopf",
+      "anhang-audit"
+    ],
+    "minimumEvidence": 2,
+    "resolution": "Margit gab nur Messwerte frei. Der Änderungsverlauf ordnet Timo die beiden zusätzlichen Felder zu. Prüfe als Nächstes, was im lokalen Ausgang bereitlag.",
+    "wrongSuspect": "Prüfe, welches Konto der Ausgang und die Änderung an der Vorlage wirklich nennen.",
+    "insufficientEvidence": "Es fehlen anerkannte Belege aus der Aktenwand."
+  },
+  {
+    "episode": {
+      "id": 5,
+      "key": "letzter-export",
+      "title": "Der letzte Export",
+      "caseTitle": "Vorschau und Ausgang",
+      "organization": "Rechenwerk Ostwind GmbH",
+      "account": "azubi",
+      "briefing": "Vergleiche Vorschau und lokalen Ausgang. Sichere Status und Prüfsumme, bevor du den Entwurf unverändert in Quarantäne verschiebst.",
+      "tracks": [
+        {
+          "id": "ausgang",
+          "title": "Lokaler Ausgang",
+          "summary": ""
+        },
+        {
+          "id": "sicherung",
+          "title": "Sicherung",
+          "summary": ""
+        }
+      ],
+      "evidenceSpecs": [
+        {
+          "id": "export-status",
+          "trackID": "ausgang",
+          "title": "Ausgangsstatus sichern",
+          "fileName": "export-status.txt",
+          "requiredFragments": [],
+          "forbiddenFragments": [],
+          "hint": "Kopiere den kompletten Status in die Belegdatei."
+        },
+        {
+          "id": "export-sha256",
+          "trackID": "sicherung",
+          "title": "Prüfsumme sichern",
+          "fileName": "export-sha256.txt",
+          "requiredFragments": [],
+          "forbiddenFragments": [],
+          "hint": "Speichere nur den SHA-256-Hash ohne Dateinamen."
+        }
+      ],
+      "suspects": [
+        {
+          "id": "timo",
+          "name": "Timo Kessler",
+          "role": "Systemadministrator",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        },
+        {
+          "id": "nadia",
+          "name": "Nadia Brem",
+          "role": "Datenbankverwaltung",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        },
+        {
+          "id": "margit",
+          "name": "Margit Ostwind",
+          "role": "Schichtleitung und Freigabe",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        }
+      ],
+      "culpritID": "timo",
+      "steps": [
+        {
+          "id": "export-status",
+          "trackID": "ausgang",
+          "title": "Ausgangsstatus sichern",
+          "detail": "Kopiere den kompletten Status in die Belegdatei.",
+          "command": null,
+          "hints": [
+            "cp ~/faelle/05/ausgang/info.txt ~/belege/export-status.txt"
+          ]
+        },
+        {
+          "id": "export-paket",
+          "trackID": "ausgang",
+          "title": "Welche Paketkennung liegt im lokalen Ausgang?",
+          "detail": "Vergleiche mit der Vorschau.",
+          "command": null,
+          "hints": []
+        },
+        {
+          "id": "uebergabe-status",
+          "trackID": "ausgang",
+          "title": "Wie lautet der Übergabestatus?",
+          "detail": "Lies empfang.txt im Ausgang.",
+          "command": null,
+          "hints": []
+        },
+        {
+          "id": "export-sha256",
+          "trackID": "sicherung",
+          "title": "Prüfsumme sichern",
+          "detail": "Speichere nur den SHA-256-Hash ohne Dateinamen.",
+          "command": null,
+          "hints": [
+            "sha256sum ~/faelle/05/ausgang/export-07.tsv | cut -d' ' -f1 > ~/belege/export-sha256.txt"
+          ]
+        },
+        {
+          "id": "export-quarantaene",
+          "trackID": "sicherung",
+          "title": "Export in Quarantäne verschieben",
+          "detail": "Bewege nur export-07.tsv. Der Dateimanager und das Terminal sind gleichwertig.",
+          "command": null,
+          "hints": [
+            "mv ~/faelle/05/ausgang/export-07.tsv ~/faelle/05/quarantaene/"
+          ]
+        }
+      ],
+      "playable": true
+    },
+    "desktop": {
+      "initialApp": "files",
+      "editor": "ausgang/info.txt",
+      "directory": "faelle/05"
+    },
+    "steps": [
+      {
+        "id": "export-status",
+        "trackID": "ausgang",
+        "title": "Ausgangsstatus sichern",
+        "detail": "Kopiere den kompletten Status in die Belegdatei.",
+        "command": null,
+        "hints": [
+          "cp ~/faelle/05/ausgang/info.txt ~/belege/export-status.txt"
+        ]
+      },
+      {
+        "id": "export-paket",
+        "trackID": "ausgang",
+        "title": "Welche Paketkennung liegt im lokalen Ausgang?",
+        "detail": "Vergleiche mit der Vorschau.",
+        "command": null,
+        "hints": []
+      },
+      {
+        "id": "uebergabe-status",
+        "trackID": "ausgang",
+        "title": "Wie lautet der Übergabestatus?",
+        "detail": "Lies empfang.txt im Ausgang.",
+        "command": null,
+        "hints": []
+      },
+      {
+        "id": "export-sha256",
+        "trackID": "sicherung",
+        "title": "Prüfsumme sichern",
+        "detail": "Speichere nur den SHA-256-Hash ohne Dateinamen.",
+        "command": null,
+        "hints": [
+          "sha256sum ~/faelle/05/ausgang/export-07.tsv | cut -d' ' -f1 > ~/belege/export-sha256.txt"
+        ]
+      },
+      {
+        "id": "export-quarantaene",
+        "trackID": "sicherung",
+        "title": "Export in Quarantäne verschieben",
+        "detail": "Bewege nur export-07.tsv. Der Dateimanager und das Terminal sind gleichwertig.",
+        "command": null,
+        "hints": [
+          "mv ~/faelle/05/ausgang/export-07.tsv ~/faelle/05/quarantaene/"
+        ]
+      }
+    ],
+    "setup": "set -eu\nmkdir -p /home/azubi/faelle/05\nmkdir -p '/home/azubi/faelle/05/vorschau'; printf %s 'sensor_id\ttemperatur_c\tzeit_utc\nOST-14\t22.4\t2026-04-18T00:00:00Z\n' > '/home/azubi/faelle/05/vorschau/export-messwerte.tsv'\nmkdir -p '/home/azubi/faelle/05/vorschau'; printf %s 'paket=EXPORT-07-PREVIEW\n' > '/home/azubi/faelle/05/vorschau/info.txt'\nmkdir -p '/home/azubi/faelle/05/ausgang'; printf %s 'sensor_id\ttemperatur_c\tzeit_utc\tkunden_ref\tkontakt\nOST-14\t22.4\t2026-04-18T00:00:00Z\tDEMO-07\tprobe@example.invalid\n' > '/home/azubi/faelle/05/ausgang/export-07.tsv'\nmkdir -p '/home/azubi/faelle/05/ausgang'; printf %s 'paket=EXPORT-07\nstatus=bereitgestellt\nkonto=timo\nzeit=2026-04-18T00:20:00Z\nfreigabe=RW-3074\n' > '/home/azubi/faelle/05/ausgang/info.txt'\nmkdir -p '/home/azubi/faelle/05/ausgang'; printf %s 'uebergabebeleg=offen\n' > '/home/azubi/faelle/05/ausgang/empfang.txt'\nmkdir -p /home/azubi/faelle/05/ausgang; chown 1000:1000 /home/azubi/faelle/05/ausgang\nmkdir -p /home/azubi/faelle/05/quarantaene; chown 1000:1000 /home/azubi/faelle/05/quarantaene",
+    "check": {
+      "export-status": "{ file='/home/azubi/belege/export-status.txt'; [ -f \"$file\" ] && [ ! -L \"$file\" ] && printf %s 'paket=EXPORT-07\nstatus=bereitgestellt\nkonto=timo\nzeit=2026-04-18T00:20:00Z\nfreigabe=RW-3074\n' | cmp -s - \"$file\"; }",
+      "export-sha256": "{ file='/home/azubi/belege/export-sha256.txt'; [ -f \"$file\" ] && [ ! -L \"$file\" ] && printf %s '7a2cba3f6f2991999036bc8aab51a9305441bfac96f00b6d6de65a5d593a271f\n' | cmp -s - \"$file\"; }",
+      "export-quarantaene": "[ ! -e /home/azubi/faelle/05/ausgang/export-07.tsv ] && [ ! -L /home/azubi/faelle/05/ausgang/export-07.tsv ] && [ -f /home/azubi/faelle/05/vorschau/export-messwerte.tsv ] && { file='/home/azubi/faelle/05/quarantaene/export-07.tsv'; [ -f \"$file\" ] && [ ! -L \"$file\" ] && printf %s 'sensor_id\ttemperatur_c\tzeit_utc\tkunden_ref\tkontakt\nOST-14\t22.4\t2026-04-18T00:00:00Z\tDEMO-07\tprobe@example.invalid\n' | cmp -s - \"$file\"; }"
+    },
+    "responses": {
+      "export-paket": {
+        "question": "Welche Paketkennung liegt im lokalen Ausgang?",
+        "format": "Paketkennung",
+        "script": "a=$(printf '%s' \"$ANTWORT\" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr '[:upper:]' '[:lower:]')\ncase \"$a\" in 'export-07') exit 0 ;; *) exit 1 ;; esac"
+      },
+      "uebergabe-status": {
+        "question": "Wie lautet der Übergabestatus?",
+        "format": "Wert hinter uebergabebeleg=",
+        "script": "a=$(printf '%s' \"$ANTWORT\" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr '[:upper:]' '[:lower:]')\ncase \"$a\" in 'offen') exit 0 ;; *) exit 1 ;; esac"
+      }
+    },
+    "repairs": [
+      "export-quarantaene"
+    ],
+    "sudo": [],
+    "evidenceIDs": [
+      "export-status",
+      "export-sha256"
+    ],
+    "minimumEvidence": 2,
+    "resolution": "Timo stellte EXPORT-07 im lokalen Ausgang bereit. Ein externer Empfang bleibt unbelegt. Der Entwurf liegt mit unverändertem Inhalt in Quarantäne.",
+    "wrongSuspect": "Prüfe, welches Konto der Ausgang und die Änderung an der Vorlage wirklich nennen.",
+    "insufficientEvidence": "Es fehlen anerkannte Belege aus der Aktenwand."
+  },
+  {
+    "episode": {
+      "id": 6,
+      "key": "zwei-uhren",
+      "title": "Zwei Uhren",
+      "caseTitle": "Ortszeit und UTC",
+      "organization": "Rechenwerk Ostwind GmbH",
+      "account": "azubi",
+      "briefing": "Vergleiche die Uhrzeiten und Kennungen. Das Journal verwendet Ortszeit, der Ausgang UTC. Margits Schichteintrag ist kein Beleg für eine Exportaktion.",
+      "tracks": [
+        {
+          "id": "quellen",
+          "title": "Originalzeilen",
+          "summary": ""
+        },
+        {
+          "id": "zeit",
+          "title": "Zeitfolge",
+          "summary": ""
+        }
+      ],
+      "evidenceSpecs": [
+        {
+          "id": "zeit-originale",
+          "trackID": "quellen",
+          "title": "Zeitzeilen sichern",
+          "fileName": "zeit-originale.txt",
+          "requiredFragments": [],
+          "forbiddenFragments": [],
+          "hint": "Sichere zuerst die Ausgangszeile, dann die zwei Journalzeilen, jeweils ohne Kopfzeile."
+        },
+        {
+          "id": "zeitfolge",
+          "trackID": "zeit",
+          "title": "Ereignisse chronologisch ordnen",
+          "fileName": "zeitfolge.txt",
+          "requiredFragments": [],
+          "forbiddenFragments": [],
+          "hint": "Schreibe je Zeile UTC-Zeit, Kennung und Konto in ~/belege/zeitfolge.txt. Trenne die drei Felder mit Tabulatoren und ordne vom ältesten zum jüngsten Ereignis."
+        }
+      ],
+      "suspects": [
+        {
+          "id": "timo",
+          "name": "Timo Kessler",
+          "role": "Systemadministrator",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        },
+        {
+          "id": "nadia",
+          "name": "Nadia Brem",
+          "role": "Datenbankverwaltung",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        },
+        {
+          "id": "margit",
+          "name": "Margit Ostwind",
+          "role": "Schichtleitung und Freigabe",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        }
+      ],
+      "culpritID": "timo",
+      "steps": [
+        {
+          "id": "zeit-originale",
+          "trackID": "quellen",
+          "title": "Zeitzeilen sichern",
+          "detail": "Sichere zuerst die Ausgangszeile, dann die zwei Journalzeilen, jeweils ohne Kopfzeile.",
+          "command": null,
+          "hints": [
+            "tail -n +2 ~/faelle/06/ausgang.tsv > ~/belege/zeit-originale.txt; tail -n +2 ~/faelle/06/journal.tsv >> ~/belege/zeit-originale.txt"
+          ]
+        },
+        {
+          "id": "zeitfolge",
+          "trackID": "zeit",
+          "title": "Ereignisse chronologisch ordnen",
+          "detail": "Schreibe je Zeile UTC-Zeit, Kennung und Konto in ~/belege/zeitfolge.txt. Trenne die drei Felder mit Tabulatoren und ordne vom ältesten zum jüngsten Ereignis.",
+          "command": null,
+          "hints": [
+            "Öffne ~/belege/zeitfolge.txt in Mousepad. Behalte die vollständige ISO-Zeit mit Datum bei. Ziehe bei +02:00 zwei Stunden ab und ersetze den Offset durch Z."
+          ]
+        },
+        {
+          "id": "ausgang-konto",
+          "trackID": "zeit",
+          "title": "Wer stellte das Paket bereit?",
+          "detail": "Begründe mit der Ausgangszeile und der Paketkennung.",
+          "command": null,
+          "hints": []
+        }
+      ],
+      "playable": true
+    },
+    "desktop": {
+      "initialApp": "editor",
+      "editor": "uhren.txt",
+      "directory": "faelle/06"
+    },
+    "steps": [
+      {
+        "id": "zeit-originale",
+        "trackID": "quellen",
+        "title": "Zeitzeilen sichern",
+        "detail": "Sichere zuerst die Ausgangszeile, dann die zwei Journalzeilen, jeweils ohne Kopfzeile.",
+        "command": null,
+        "hints": [
+          "tail -n +2 ~/faelle/06/ausgang.tsv > ~/belege/zeit-originale.txt; tail -n +2 ~/faelle/06/journal.tsv >> ~/belege/zeit-originale.txt"
+        ]
+      },
+      {
+        "id": "zeitfolge",
+        "trackID": "zeit",
+        "title": "Ereignisse chronologisch ordnen",
+        "detail": "Schreibe je Zeile UTC-Zeit, Kennung und Konto in ~/belege/zeitfolge.txt. Trenne die drei Felder mit Tabulatoren und ordne vom ältesten zum jüngsten Ereignis.",
+        "command": null,
+        "hints": [
+          "Öffne ~/belege/zeitfolge.txt in Mousepad. Behalte die vollständige ISO-Zeit mit Datum bei. Ziehe bei +02:00 zwei Stunden ab und ersetze den Offset durch Z."
+        ]
+      },
+      {
+        "id": "ausgang-konto",
+        "trackID": "zeit",
+        "title": "Wer stellte das Paket bereit?",
+        "detail": "Begründe mit der Ausgangszeile und der Paketkennung.",
+        "command": null,
+        "hints": []
+      }
+    ],
+    "setup": "set -eu\nmkdir -p /home/azubi/faelle/06\nmkdir -p '/home/azubi/faelle/06'; printf %s 'zeit\tpaket\tkonto\tereignis\n2026-04-18T00:20:00Z\tEXPORT-07\ttimo\tbereitgestellt\n' > '/home/azubi/faelle/06/ausgang.tsv'\nmkdir -p '/home/azubi/faelle/06'; printf %s 'zeit\tkennung\tkonto\tereignis\n2026-04-18T04:21:37+02:00\tRW-1051\tnadia\tloeschlauf_gestartet\n2026-04-20T10:47:52+02:00\tRW-2122\tnadia\twaechter_eingetragen\n' > '/home/azubi/faelle/06/journal.tsv'\nmkdir -p '/home/azubi/faelle/06'; printf %s '2026-04-18T02:20:00+02:00 Margit verlässt den Raum. Keine Aktion zu EXPORT-07.\n' > '/home/azubi/faelle/06/schicht.txt'\nmkdir -p '/home/azubi/faelle/06'; printf %s 'Z bedeutet UTC. Bei +02:00 sind zwei Stunden abzuziehen.\nBeispiel: 14:30:00+02:00 entspricht 12:30:00Z.\n' > '/home/azubi/faelle/06/uhren.txt'",
+    "check": {
+      "zeit-originale": "{ file='/home/azubi/belege/zeit-originale.txt'; [ -f \"$file\" ] && [ ! -L \"$file\" ] && printf %s '2026-04-18T00:20:00Z\tEXPORT-07\ttimo\tbereitgestellt\n2026-04-18T04:21:37+02:00\tRW-1051\tnadia\tloeschlauf_gestartet\n2026-04-20T10:47:52+02:00\tRW-2122\tnadia\twaechter_eingetragen\n' | cmp -s - \"$file\"; }",
+      "zeitfolge": "{ file='/home/azubi/belege/zeitfolge.txt'; [ -f \"$file\" ] && [ ! -L \"$file\" ] && printf %s '2026-04-18T00:20:00Z\tEXPORT-07\ttimo\n2026-04-18T02:21:37Z\tRW-1051\tnadia\n2026-04-20T08:47:52Z\tRW-2122\tnadia\n' | cmp -s - \"$file\"; }"
+    },
+    "responses": {
+      "ausgang-konto": {
+        "question": "Wer stellte das Paket bereit?",
+        "format": "Kontoname",
+        "script": "a=$(printf '%s' \"$ANTWORT\" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr '[:upper:]' '[:lower:]')\ncase \"$a\" in 'timo') exit 0 ;; *) exit 1 ;; esac"
+      }
+    },
+    "repairs": [],
+    "sudo": [],
+    "evidenceIDs": [
+      "zeit-originale",
+      "zeitfolge"
+    ],
+    "minimumEvidence": 2,
+    "resolution": "Timo stellte das Paket am 18. April bereit. Nadia startete danach das Löschskript. Ihr Eintrag zum Wächter stammt vom 20. April. Jetzt folgt die dokumentierte Übergabe.",
+    "wrongSuspect": "Prüfe, welches Konto der Ausgang und die Änderung an der Vorlage wirklich nennen.",
+    "insufficientEvidence": "Es fehlen anerkannte Belege aus der Aktenwand."
+  },
+  {
+    "episode": {
+      "id": 7,
+      "key": "uebergabe",
+      "title": "Die Übergabe",
+      "caseTitle": "Staffelfinale",
+      "organization": "Rechenwerk Ostwind GmbH",
+      "account": "azubi",
+      "briefing": "Lege die freigegebenen Messwerte im lokalen Testausgang ab. Sichere den Vergleich und trenne bei der Übergabe belegte Aussagen von Vermutungen.",
+      "tracks": [
+        {
+          "id": "pruefung",
+          "title": "Funktionsprüfung",
+          "summary": ""
+        },
+        {
+          "id": "akten",
+          "title": "Fallakte",
+          "summary": ""
+        }
+      ],
+      "evidenceSpecs": [
+        {
+          "id": "finale-pruefung",
+          "trackID": "pruefung",
+          "title": "Geprüfte Spalten sichern",
+          "fileName": "finale-pruefung.txt",
+          "requiredFragments": [],
+          "forbiddenFragments": [],
+          "hint": "Sichere die Kopfzeile der lokal bereitgestellten Datei."
+        },
+        {
+          "id": "finale-fallakte",
+          "trackID": "akten",
+          "title": "Fallakte zur Übergabe sichern",
+          "fileName": "finale-fallakte.txt",
+          "requiredFragments": [],
+          "forbiddenFragments": [],
+          "hint": "Kopiere die Zusammenfassung in die Belege und vergleiche sie mit den abgeschlossenen Fällen."
+        }
+      ],
+      "suspects": [
+        {
+          "id": "timo",
+          "name": "Timo Kessler",
+          "role": "Systemadministrator",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        },
+        {
+          "id": "nadia",
+          "name": "Nadia Brem",
+          "role": "Datenbankverwaltung",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        },
+        {
+          "id": "margit",
+          "name": "Margit Ostwind",
+          "role": "Schichtleitung und Freigabe",
+          "detail": "",
+          "systemImage": "person.crop.circle"
+        }
+      ],
+      "culpritID": "timo",
+      "steps": [
+        {
+          "id": "finale-testlauf",
+          "trackID": "pruefung",
+          "title": "Freigegebene Datei bereitstellen",
+          "detail": "Kopiere ausschließlich die unveränderte Datei messwerte.tsv in betrieb/testausgang.",
+          "command": null,
+          "hints": [
+            "cp ~/faelle/07/freigabe/messwerte.tsv ~/faelle/07/betrieb/testausgang/"
+          ]
+        },
+        {
+          "id": "finale-pruefung",
+          "trackID": "pruefung",
+          "title": "Geprüfte Spalten sichern",
+          "detail": "Sichere die Kopfzeile der lokal bereitgestellten Datei.",
+          "command": null,
+          "hints": [
+            "head -n 1 ~/faelle/07/betrieb/testausgang/messwerte.tsv > ~/belege/finale-pruefung.txt"
+          ]
+        },
+        {
+          "id": "finale-fallakte",
+          "trackID": "akten",
+          "title": "Fallakte zur Übergabe sichern",
+          "detail": "Kopiere die Zusammenfassung in die Belege und vergleiche sie mit den abgeschlossenen Fällen.",
+          "command": null,
+          "hints": [
+            "cp ~/faelle/07/vorlagen/fallakte.txt ~/belege/finale-fallakte.txt"
+          ]
+        },
+        {
+          "id": "schluss-export",
+          "trackID": "akten",
+          "title": "Wer änderte die Vorlage und stellte das Paket bereit?",
+          "detail": "Verwende die Freigabe und den lokalen Ausgang.",
+          "command": null,
+          "hints": []
+        },
+        {
+          "id": "schluss-loeschlauf",
+          "trackID": "akten",
+          "title": "Wer startete das Löschskript?",
+          "detail": "Verwende die bestätigte Zeitfolge.",
+          "command": null,
+          "hints": []
+        },
+        {
+          "id": "schluss-empfang",
+          "trackID": "akten",
+          "title": "Welchen Status hat ein externer Empfang?",
+          "detail": "Trenne bereitgestellt von empfangen.",
+          "command": null,
+          "hints": []
+        },
+        {
+          "id": "schluss-testlauf",
+          "trackID": "akten",
+          "title": "Welche Daten sind für den Testlauf freigegeben?",
+          "detail": "Verwende die Freigabe und den lokalen Testausgang.",
+          "command": null,
+          "hints": []
+        }
+      ],
+      "playable": true
+    },
+    "desktop": {
+      "initialApp": "files",
+      "editor": "vorlagen/uebergabe.md",
+      "directory": "faelle/07"
+    },
+    "steps": [
+      {
+        "id": "finale-testlauf",
+        "trackID": "pruefung",
+        "title": "Freigegebene Datei bereitstellen",
+        "detail": "Kopiere ausschließlich die unveränderte Datei messwerte.tsv in betrieb/testausgang.",
+        "command": null,
+        "hints": [
+          "cp ~/faelle/07/freigabe/messwerte.tsv ~/faelle/07/betrieb/testausgang/"
+        ]
+      },
+      {
+        "id": "finale-pruefung",
+        "trackID": "pruefung",
+        "title": "Geprüfte Spalten sichern",
+        "detail": "Sichere die Kopfzeile der lokal bereitgestellten Datei.",
+        "command": null,
+        "hints": [
+          "head -n 1 ~/faelle/07/betrieb/testausgang/messwerte.tsv > ~/belege/finale-pruefung.txt"
+        ]
+      },
+      {
+        "id": "finale-fallakte",
+        "trackID": "akten",
+        "title": "Fallakte zur Übergabe sichern",
+        "detail": "Kopiere die Zusammenfassung in die Belege und vergleiche sie mit den abgeschlossenen Fällen.",
+        "command": null,
+        "hints": [
+          "cp ~/faelle/07/vorlagen/fallakte.txt ~/belege/finale-fallakte.txt"
+        ]
+      },
+      {
+        "id": "schluss-export",
+        "trackID": "akten",
+        "title": "Wer änderte die Vorlage und stellte das Paket bereit?",
+        "detail": "Verwende die Freigabe und den lokalen Ausgang.",
+        "command": null,
+        "hints": []
+      },
+      {
+        "id": "schluss-loeschlauf",
+        "trackID": "akten",
+        "title": "Wer startete das Löschskript?",
+        "detail": "Verwende die bestätigte Zeitfolge.",
+        "command": null,
+        "hints": []
+      },
+      {
+        "id": "schluss-empfang",
+        "trackID": "akten",
+        "title": "Welchen Status hat ein externer Empfang?",
+        "detail": "Trenne bereitgestellt von empfangen.",
+        "command": null,
+        "hints": []
+      },
+      {
+        "id": "schluss-testlauf",
+        "trackID": "akten",
+        "title": "Welche Daten sind für den Testlauf freigegeben?",
+        "detail": "Verwende die Freigabe und den lokalen Testausgang.",
+        "command": null,
+        "hints": []
+      }
+    ],
+    "setup": "set -eu\nmkdir -p /home/azubi/faelle/07\nmkdir -p '/home/azubi/faelle/07/freigabe'; printf %s 'sensor_id\ntemperatur_c\nzeit_utc\n' > '/home/azubi/faelle/07/freigabe/spalten.txt'\nmkdir -p '/home/azubi/faelle/07/freigabe'; printf %s 'sensor_id\ttemperatur_c\tzeit_utc\nOST-14\t22.4\t2026-04-18T00:00:00Z\n' > '/home/azubi/faelle/07/freigabe/messwerte.tsv'\nmkdir -p '/home/azubi/faelle/07/vorlagen'; printf %s '# Übergabe\n- Exportverantwortung\n- Start des Löschskripts\n- Externer Empfang\n- Freigabestatus\n' > '/home/azubi/faelle/07/vorlagen/uebergabe.md'\nmkdir -p '/home/azubi/faelle/07/vorlagen'; printf %s 'RW-3074: Timo erweiterte die Vorlage. Margit gab nur Messwerte frei.\nEXPORT-07: Timo stellte das Paket lokal bereit. Empfang offen.\nRW-1051: Nadia startete das Löschskript.\n' > '/home/azubi/faelle/07/vorlagen/fallakte.txt'\nmkdir -p /home/azubi/faelle/07/betrieb/testausgang; chown 1000:1000 /home/azubi/faelle/07/betrieb/testausgang",
+    "check": {
+      "finale-testlauf": "{ file='/home/azubi/faelle/07/betrieb/testausgang/messwerte.tsv'; [ -f \"$file\" ] && [ ! -L \"$file\" ] && printf %s 'sensor_id\ttemperatur_c\tzeit_utc\nOST-14\t22.4\t2026-04-18T00:00:00Z\n' | cmp -s - \"$file\"; }",
+      "finale-pruefung": "{ file='/home/azubi/belege/finale-pruefung.txt'; [ -f \"$file\" ] && [ ! -L \"$file\" ] && printf %s 'sensor_id\ttemperatur_c\tzeit_utc\n' | cmp -s - \"$file\"; }",
+      "finale-fallakte": "{ file='/home/azubi/belege/finale-fallakte.txt'; [ -f \"$file\" ] && [ ! -L \"$file\" ] && printf %s 'RW-3074: Timo erweiterte die Vorlage. Margit gab nur Messwerte frei.\nEXPORT-07: Timo stellte das Paket lokal bereit. Empfang offen.\nRW-1051: Nadia startete das Löschskript.\n' | cmp -s - \"$file\"; }"
+    },
+    "responses": {
+      "schluss-export": {
+        "question": "Wer änderte die Vorlage und stellte das Paket bereit?",
+        "format": "Kontoname",
+        "script": "a=$(printf '%s' \"$ANTWORT\" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr '[:upper:]' '[:lower:]')\ncase \"$a\" in 'timo') exit 0 ;; *) exit 1 ;; esac"
+      },
+      "schluss-loeschlauf": {
+        "question": "Wer startete das Löschskript?",
+        "format": "Kontoname",
+        "script": "a=$(printf '%s' \"$ANTWORT\" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr '[:upper:]' '[:lower:]')\ncase \"$a\" in 'nadia') exit 0 ;; *) exit 1 ;; esac"
+      },
+      "schluss-empfang": {
+        "question": "Welchen Status hat ein externer Empfang?",
+        "format": "Status in einem Wort",
+        "script": "a=$(printf '%s' \"$ANTWORT\" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr '[:upper:]' '[:lower:]')\ncase \"$a\" in 'unbelegt') exit 0 ;; *) exit 1 ;; esac"
+      },
+      "schluss-testlauf": {
+        "question": "Welche Daten sind für den Testlauf freigegeben?",
+        "format": "freigegebene_messwerte oder freigegebene Messwerte",
+        "script": "a=$(printf '%s' \"$ANTWORT\" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | tr '[:upper:]' '[:lower:]')\ncase \"$a\" in 'freigegebene_messwerte'|'freigegebene messwerte') exit 0 ;; *) exit 1 ;; esac"
+      }
+    },
+    "repairs": [
+      "finale-testlauf"
+    ],
+    "sudo": [],
+    "evidenceIDs": [
+      "finale-pruefung",
+      "finale-fallakte"
+    ],
+    "minimumEvidence": 2,
+    "resolution": "Wir haben geklärt, wer den Export bereitstellte und wer die Spur löschte. Einen externen Empfang können wir nicht belegen. Margit übernimmt die dokumentierte Übergabe. Im Testausgang liegen ausschließlich die freigegebenen Messwerte.",
+    "wrongSuspect": "Prüfe, welches Konto der Ausgang und die Änderung an der Vorlage wirklich nennen.",
+    "insufficientEvidence": "Es fehlen anerkannte Belege aus der Aktenwand."
+  }
+]
