@@ -300,9 +300,19 @@ class AppController {
     if (event.terminalPrompt) {
       this.terminalPromptCount += 1;
       if (this.terminalRefreshTimer) clearTimeout(this.terminalRefreshTimer);
-      this.terminalRefreshTimer = setTimeout(() => {
-        if (!this.terminalBusy) this.refreshGuest();
-      }, 80);
+      const armRefresh = () => {
+        this.terminalRefreshTimer = setTimeout(() => {
+          if (this.terminalBusy) {
+            // Laufenden Vorgang nicht verwerfen: Refresh erneut planen, bis er
+            // frei ist. Sonst geht auf langsamer Emulation der letzte Beleg-Sync
+            // verloren und die Akte bleibt unerkannt.
+            armRefresh();
+            return;
+          }
+          this.refreshGuest();
+        }, 80);
+      };
+      armRefresh();
     }
     if (event.terminalClosed) {
       this.interactiveShellOpen = false;
